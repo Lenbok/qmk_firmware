@@ -45,8 +45,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define MOUSEKEY_WHEEL_MAX_SPEED   1
 #define MOUSEKEY_WHEEL_TIME_TO_MAX 0
 
-//#define TAPPING_TERM 200
+// How long before a tap becomes a hold
+#define TAPPING_TERM 200
+// Treat mod tap key as a hold even if it hasn't hit TAPPING_TERM
 #define PERMISSIVE_HOLD
+// Treat a hold following a tap as a hold rather than key repeat
+#define TAPPING_FORCE_HOLD
+// Make it possible to do rolling combos with keys that convert to other keys on hold
+//#define IGNORE_MOD_TAP_INTERRUPT
+// If a mod tap key is pressed for TAPPING_TERM with no other key pressed, issue a tap rather than treating as a (no-op) mod.
 //#define RETRO_TAPPING
 
 #define DISABLE_SPACE_CADET_ROLLOVER
