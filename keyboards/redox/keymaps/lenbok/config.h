@@ -54,6 +54,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // Make it possible to do rolling combos with keys that convert to other keys on hold
 //#define IGNORE_MOD_TAP_INTERRUPT
 // If a mod tap key is pressed for TAPPING_TERM with no other key pressed, issue a tap rather than treating as a (no-op) mod.
+// Use if you have a short TAPPING_TERM
 //#define RETRO_TAPPING
 
 #define DISABLE_SPACE_CADET_ROLLOVER
