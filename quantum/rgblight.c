@@ -703,11 +703,12 @@ void rgblight_effect_breathing(uint8_t interval) {
   static uint8_t pos = 0;
   static uint16_t last_timer = 0;
   float val;
+  uint8_t interval_timer = pgm_read_byte(&RGBLED_BREATHING_INTERVALS[interval]);
 
-  if (timer_elapsed(last_timer) < pgm_read_byte(&RGBLED_BREATHING_INTERVALS[interval])) {
+  if (timer_elapsed(last_timer) < interval_timer) {
     return;
   }
-  last_timer = timer_read();
+  last_timer += interval_timer;
 
   // http://sean.voisen.org/blog/2011/10/breathing-led-with-arduino/
   val = (exp(sin((pos/255.0)*M_PI)) - RGBLIGHT_EFFECT_BREATHE_CENTER/M_E)*(RGBLIGHT_EFFECT_BREATHE_MAX/(M_E-1/M_E));
@@ -723,11 +724,12 @@ const uint8_t RGBLED_RAINBOW_MOOD_INTERVALS[] PROGMEM = {120, 60, 30};
 void rgblight_effect_rainbow_mood(uint8_t interval) {
   static uint16_t current_hue = 0;
   static uint16_t last_timer = 0;
+  uint8_t interval_timer = pgm_read_byte(&RGBLED_RAINBOW_MOOD_INTERVALS[interval]);
 
-  if (timer_elapsed(last_timer) < pgm_read_byte(&RGBLED_RAINBOW_MOOD_INTERVALS[interval])) {
+  if (timer_elapsed(last_timer) < interval_timer) {
     return;
   }
-  last_timer = timer_read();
+  last_timer += interval_timer;
   rgblight_sethsv_noeeprom_old(current_hue, rgblight_config.sat, rgblight_config.val);
   current_hue = (current_hue + 1) % 360;
 }
@@ -746,10 +748,11 @@ void rgblight_effect_rainbow_swirl(uint8_t interval) {
   static uint16_t last_timer = 0;
   uint16_t hue;
   uint8_t i;
-  if (timer_elapsed(last_timer) < pgm_read_byte(&RGBLED_RAINBOW_SWIRL_INTERVALS[interval / 2])) {
+  uint8_t interval_timer = pgm_read_byte(&RGBLED_RAINBOW_SWIRL_INTERVALS[interval / 2]);
+  if (timer_elapsed(last_timer) < interval_timer) {
     return;
   }
-  last_timer = timer_read();
+  last_timer += interval_timer;
   for (i = 0; i < RGBLED_NUM; i++) {
     hue = (RGBLIGHT_RAINBOW_SWIRL_RANGE / RGBLED_NUM * i + current_hue) % 360;
     sethsv(hue, rgblight_config.sat, rgblight_config.val, (LED_TYPE *)&led[i]);
@@ -778,13 +781,14 @@ void rgblight_effect_snake(uint8_t interval) {
   uint8_t i, j;
   int8_t k;
   int8_t increment = 1;
+  uint8_t interval_timer = pgm_read_byte(&RGBLED_SNAKE_INTERVALS[interval / 2]);
   if (interval % 2) {
     increment = -1;
   }
-  if (timer_elapsed(last_timer) < pgm_read_byte(&RGBLED_SNAKE_INTERVALS[interval / 2])) {
+  if (timer_elapsed(last_timer) < interval_timer) {
     return;
   }
-  last_timer = timer_read();
+  last_timer += interval_timer;
   for (i = 0; i < RGBLED_NUM; i++) {
     led[i].r = 0;
     led[i].g = 0;
@@ -818,10 +822,11 @@ const uint8_t RGBLED_KNIGHT_INTERVALS[] PROGMEM = {127, 63, 31};
 
 void rgblight_effect_knight(uint8_t interval) {
   static uint16_t last_timer = 0;
-  if (timer_elapsed(last_timer) < pgm_read_byte(&RGBLED_KNIGHT_INTERVALS[interval])) {
+  uint8_t interval_timer = pgm_read_byte(&RGBLED_KNIGHT_INTERVALS[interval]);
+  if (timer_elapsed(last_timer) < interval_timer) {
     return;
   }
-  last_timer = timer_read();
+  last_timer += interval_timer;
 
   static int8_t low_bound = 0;
   static int8_t high_bound = RGBLIGHT_EFFECT_KNIGHT_LENGTH - 1;
@@ -868,7 +873,7 @@ void rgblight_effect_christmas(void) {
   if (timer_elapsed(last_timer) < RGBLIGHT_EFFECT_CHRISTMAS_INTERVAL) {
     return;
   }
-  last_timer = timer_read();
+  last_timer += RGBLIGHT_EFFECT_CHRISTMAS_INTERVAL;
   current_offset = (current_offset + 1) % 2;
   for (i = 0; i < RGBLED_NUM; i++) {
     hue = 0 + ((i/RGBLIGHT_EFFECT_CHRISTMAS_STEP + current_offset) % 2) * 120;
@@ -887,8 +892,8 @@ void rgblight_effect_rgbtest(void) {
   static uint16_t last_timer = 0;
   static uint8_t maxval = 0;
   uint8_t g; uint8_t r; uint8_t b;
-
-  if (timer_elapsed(last_timer) < pgm_read_word(&RGBLED_RGBTEST_INTERVALS[0])) {
+  uint8_t interval_timer = pgm_read_word(&RGBLED_RGBTEST_INTERVALS[0]);
+  if (timer_elapsed(last_timer) < interval_timer) {
     return;
   }
 
@@ -916,7 +921,7 @@ void rgblight_effect_alternating(void){
   if (timer_elapsed(last_timer) < 500) {
     return;
   }
-  last_timer = timer_read();
+  last_timer += 500;
 
   for(int i = 0; i<RGBLED_NUM; i++){
       if(i<RGBLED_NUM/2 && pos){
