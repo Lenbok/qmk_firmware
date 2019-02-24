@@ -112,7 +112,6 @@ void matrix_scan_user(void) {
       // to use the eeprom version in order to have it propagate across halves
 #ifdef SPLIT_KEYBOARD
       rgblight_toggle();
-      RGB_DIRTY = true;
 #else
       rgblight_toggle_noeeprom();
 #endif
