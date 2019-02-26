@@ -99,46 +99,46 @@ extern rgblight_config_t rgblight_config;
 static uint32_t idle_timer;
 static bool idle_timeout_enabled;
 void keyboard_post_init_user(void) {
-    idle_timer = timer_read32();
-    idle_timeout_enabled = rgblight_config.enable ? true : false;
-    xprintf("idle_timeout init: idle_timeout_enabled = %u\n", idle_timeout_enabled);
+  idle_timer = timer_read32();
+  idle_timeout_enabled = rgblight_config.enable ? true : false;
+  xprintf("idle_timeout init: idle_timeout_enabled = %u\n", idle_timeout_enabled);
 }
 void matrix_scan_user(void) {
-    if (idle_timeout_enabled) {
-        bool shouldenable = timer_elapsed32(idle_timer) < IDLE_TIMEOUT ? true : false;
-        if (shouldenable != rgblight_config.enable) {
-            xprintf("idle_timeout override: toggling\n");
-            // Toggle the underglow. Unfortunately for split keyboards we need
-            // to use the eeprom version in order to have it propagate across halves
+  if (idle_timeout_enabled) {
+    bool shouldenable = timer_elapsed32(idle_timer) < IDLE_TIMEOUT ? true : false;
+    if (shouldenable != rgblight_config.enable) {
+      xprintf("idle_timeout override: toggling\n");
+      // Toggle the underglow. Unfortunately for split keyboards we need
+      // to use the eeprom version in order to have it propagate across halves
 #ifdef SPLIT_KEYBOARD
-            rgblight_toggle();
-            RGB_DIRTY = true;
+      rgblight_toggle();
+      RGB_DIRTY = true;
 #else
-            rgblight_toggle_noeeprom();
+      rgblight_toggle_noeeprom();
 #endif
-        }
     }
+  }
 }
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-    if (record->event.pressed) {
-        idle_timer = timer_read32();
-    }
-    switch (keycode) {
-    case RGB_TOG: // Monitor for change in global status
-        // Split keyboards need to trigger on key-up for edge-case issue
-        // See corresponding case in quantum.c
+  if (record->event.pressed) {
+    idle_timer = timer_read32();
+  }
+  switch (keycode) {
+  case RGB_TOG: // Monitor for change in global status
+    // Split keyboards need to trigger on key-up for edge-case issue
+    // See corresponding case in quantum.c
 #ifndef SPLIT_KEYBOARD
-        if (record->event.pressed) {
+    if (record->event.pressed) {
 #else
-        if (!record->event.pressed) {
+    if (!record->event.pressed) {
 #endif
-            // First restore rgblight enabled status to original
-            rgblight_config.enable = idle_timeout_enabled;
-            idle_timeout_enabled = idle_timeout_enabled ? false : true;
-            xprintf("idle_timeout enable: idle_timeout_enabled = %u, rgblight_config.enabled = %u\n", idle_timeout_enabled, rgblight_config.enable);
-        }
-        return true; // Let main quantum code handle the actual toggling
+      // First restore rgblight enabled status to original
+      rgblight_config.enable = idle_timeout_enabled;
+      idle_timeout_enabled = idle_timeout_enabled ? false : true;
+      xprintf("idle_timeout enable: idle_timeout_enabled = %u, rgblight_config.enabled = %u\n", idle_timeout_enabled, rgblight_config.enable);
     }
-    return true;
+    return true; // Let main quantum code handle the actual toggling
+  }
+  return true;
 }
 #endif
