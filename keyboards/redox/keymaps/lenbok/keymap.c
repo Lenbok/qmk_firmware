@@ -108,13 +108,7 @@ void matrix_scan_user(void) {
     bool shouldenable = timer_elapsed32(idle_timer) < IDLE_TIMEOUT ? true : false;
     if (shouldenable != rgblight_config.enable) {
       xprintf("idle_timeout override: toggling\n");
-      // Toggle the underglow. Unfortunately for split keyboards we need
-      // to use the eeprom version in order to have it propagate across halves
-#ifdef SPLIT_KEYBOARD
-      rgblight_toggle();
-#else
       rgblight_toggle_noeeprom();
-#endif
     }
   }
 }
