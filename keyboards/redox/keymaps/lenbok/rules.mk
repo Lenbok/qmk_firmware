@@ -4,3 +4,4 @@ MOUSEKEY_ENABLE = yes
 # COMMAND_ENABLE interferes with space cadet (unless you also disable space cadet rollover)
 COMMAND_ENABLE = no
 CONSOLE_ENABLE = yes
+VELOCIKEY_ENABLE = yes
