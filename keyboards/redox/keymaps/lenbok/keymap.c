@@ -96,41 +96,29 @@ uint32_t layer_state_set_user(uint32_t state) {
 #ifdef RGBLIGHT_ENABLE
 #define IDLE_TIMEOUT 600000   // Blank underglow after 600 secs of inactivity
 extern rgblight_config_t rgblight_config;
-static uint32_t idle_timer;
-static bool idle_timeout_enabled;
+static uint32_t rgb_idle_timer;
+static bool rgb_idle_timeout = false;
 void keyboard_post_init_user(void) {
-  idle_timer = timer_read32();
-  idle_timeout_enabled = rgblight_config.enable ? true : false;
-  xprintf("idle_timeout init: idle_timeout_enabled = %u\n", idle_timeout_enabled);
+  rgb_idle_timer = timer_read32();
 }
 void matrix_scan_user(void) {
-  if (idle_timeout_enabled) {
-    bool shouldenable = timer_elapsed32(idle_timer) < IDLE_TIMEOUT ? true : false;
-    if (shouldenable != rgblight_config.enable) {
-      xprintf("idle_timeout override: toggling\n");
-      rgblight_toggle_noeeprom();
+  if (!rgb_idle_timeout && rgblight_config.enable) {
+    bool shouldblank = timer_elapsed32(rgb_idle_timer) < IDLE_TIMEOUT ? false : true;
+    if (shouldblank) {
+      xprintf("rgb_idle_timeout: disabling\n");
+      rgblight_disable_noeeprom();
+      rgb_idle_timeout = true;
     }
   }
 }
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
-    idle_timer = timer_read32();
-  }
-  switch (keycode) {
-  case RGB_TOG: // Monitor for change in global status
-    // Split keyboards need to trigger on key-up for edge-case issue
-    // See corresponding case in quantum.c
-#ifndef SPLIT_KEYBOARD
-    if (record->event.pressed) {
-#else
-    if (!record->event.pressed) {
-#endif
-      // First restore rgblight enabled status to original
-      rgblight_config.enable = idle_timeout_enabled;
-      idle_timeout_enabled = idle_timeout_enabled ? false : true;
-      xprintf("idle_timeout enable: idle_timeout_enabled = %u, rgblight_config.enabled = %u\n", idle_timeout_enabled, rgblight_config.enable);
+    if (rgb_idle_timeout) {
+      xprintf("rgb_idle_timeout: enabling\n");
+      rgblight_enable_noeeprom();
+      rgb_idle_timeout = false;
     }
-    return true; // Let main quantum code handle the actual toggling
+    rgb_idle_timer = timer_read32();
   }
   return true;
 }
