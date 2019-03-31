@@ -7,6 +7,7 @@
 #ifdef SSD1306OLED
   #include "ssd1306.h"
 #endif
+#include "lenbok.h"
 
 extern keymap_config_t keymap_config;
 
@@ -17,117 +18,60 @@ extern rgblight_config_t rgblight_config;
 
 extern uint8_t is_master;
 
-// Each layer gets a name for readability, which is then used in the keymap matrix below.
-// The underscores don't mean anything - you can have a layer called STUFF or any other name.
-// Layer names don't all need to be of the same length, obviously, and you can also skip them
-// entirely and just use numbers.
-#define _QWERTY 0
-#define _LOWER 1
-#define _RAISE 2
-#define _ADJUST 3
-
-enum custom_keycodes {
-  QWERTY = SAFE_RANGE,
-  LOWER,
-  RAISE,
-  ADJUST,
-  BACKLIT,
-  RGBRST
-};
-
-enum macro_keycodes {
-  KC_SAMPLEMACRO,
-};
-
-#define KC______ KC_TRNS
-#define KC_XXXXX KC_NO
-#define KC_LOWER LOWER
-#define KC_RAISE RAISE
-#define KC_RST   RESET
-#define KC_LRST  RGBRST
-#define KC_LTOG  RGB_TOG
-#define KC_LHUI  RGB_HUI
-#define KC_LHUD  RGB_HUD
-#define KC_LSAI  RGB_SAI
-#define KC_LSAD  RGB_SAD
-#define KC_LVAI  RGB_VAI
-#define KC_LVAD  RGB_VAD
-#define KC_LMOD  RGB_MOD
-#define KC_CTLTB CTL_T(KC_TAB)
-#define KC_GUIEI GUI_T(KC_LANG2)
-#define KC_ALTKN ALT_T(KC_LANG1)
-#define KC_GUGR LGUI_T(KC_GRV)
+#define LAYOUT_crkbd_wrapper(...)      LAYOUT(__VA_ARGS__)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-  [_QWERTY] = LAYOUT_kc( \
+  [_QWERTY] = LAYOUT_crkbd_wrapper(
   //,-----------------------------------------.                ,-----------------------------------------.
-       GUGR,     Q,     W,     E,     R,     T,                      Y,     U,     I,     O,     P,  BSPC,\
+                 ___QWERTY_L1___             ,                               ___QWERTY_R1___             ,
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      CTLTB,     A,     S,     D,     F,     G,                      H,     J,     K,     L,  SCLN,  QUOT,\
+                 ___QWERTY_L2___             ,                               ___QWERTY_R2___             ,
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       LSPO,     Z,     X,     C,     V,     B,                      N,     M,  COMM,   DOT,  SLSH,  RSPC,\
+                 ___QWERTY_L3___             ,                               ___QWERTY_R3___             ,
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                   LALT,   ENT, LOWER,    RAISE,   SPC,  RCTL \
+                                               ___BASE_6_MOD___
                               //`--------------------'  `--------------------'
   ),
 
-  [_LOWER] = LAYOUT_kc( \
+  [_LOWER] = LAYOUT_crkbd_wrapper(
   //,-----------------------------------------.                ,-----------------------------------------.
-        ESC,     1,     2,     3,     4,     5,                      6,     7,     8,     9,     0, _____,\
+                  ___LOWER_L1___              ,                               ___LOWER_R1___             ,
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      _____,    F1,    F2,    F3,    F4,    F5,                   LEFT,  DOWN,    UP,  RGHT, _____, _____,\
+                  ___LOWER_L2___              ,                               ___LOWER_R2___             ,
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      _____,    F6,    F7,    F8,    F9,   F10,                  _____, _____, _____, _____, _____, _____,\
+                  ___LOWER_L3___              ,                               ___LOWER_R3___             ,
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  _____,   SPC, _____,    _____,   ENT, _____\
+                                               ___ALT_6_MOD___
                               //`--------------------'  `--------------------'
   ),
 
-  [_RAISE] = LAYOUT_kc( \
+  [_RAISE] = LAYOUT_crkbd_wrapper(
   //,-----------------------------------------.                ,-----------------------------------------.
-      _____,  EXLM,    AT,  HASH,   DLR,  PERC,                   CIRC,  AMPR,  ASTR,  LPRN,  RPRN, _____,\
+                  ___UPPER_L1___              ,                               ___UPPER_R1___             ,
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      _____, _____, _____, _____, _____, _____,                   MINS,   EQL,  LCBR,  RCBR,  PIPE, _____,\
+                  ___UPPER_L2___              ,                               ___UPPER_R2___             ,
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      _____, _____, _____, _____, _____, _____,                   UNDS,  PLUS,  LBRC,  RBRC,  BSLS, _____,\
+                  ___UPPER_L3___              ,                               ___UPPER_R3___             ,
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  _____,   SPC, _____,    _____,   ENT, _____\
+                                               ___ALT_6_MOD___
                               //`--------------------'  `--------------------'
   ),
 
-  [_ADJUST] = LAYOUT_kc( \
+  [_ADJUST] = LAYOUT_crkbd_wrapper(
   //,-----------------------------------------.                ,-----------------------------------------.
-        RST,  LRST, XXXXX, XXXXX, XXXXX,  MUTE,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
+                 ___ADJUST_L1___              ,                              ___ADJUST_R1___             ,
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       CAPS,  LHUI,  LSAI,  LVAI,  LTOG,  VOLU,                  XXXXX,  HOME,    UP,   END, XXXXX,   INS,\
+                 ___ADJUST_L2___              ,                              ___ADJUST_R2___             ,
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       LSFT,  LHUD,  LSAD,  LVAD,  LMOD,  VOLD,                  XXXXX,  LEFT,  DOWN,  RGHT, XXXXX,  RSFT,\
+                 ___ADJUST_L3___              ,                              ___ADJUST_R3___             ,
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  _____,   SPC, _____,    _____,   ENT, _____\
+                                               ___ALT_6_MOD___
                               //`--------------------'  `--------------------'
   )
 };
 
-int RGB_current_mode;
-
-void persistent_default_layer_set(uint16_t default_layer) {
-  eeconfig_update_default_layer(default_layer);
-  default_layer_set(default_layer);
-}
-
-// Setting ADJUST layer RGB back to default
-void update_tri_layer_RGB(uint8_t layer1, uint8_t layer2, uint8_t layer3) {
-  if (IS_LAYER_ON(layer1) && IS_LAYER_ON(layer2)) {
-    layer_on(layer3);
-  } else {
-    layer_off(layer3);
-  }
-}
 
 void matrix_init_user(void) {
-    #ifdef RGBLIGHT_ENABLE
-      RGB_current_mode = rgblight_config.mode;
-    #endif
     //SSD1306 OLED init, make sure to add #define SSD1306OLED in config.h
     #ifdef SSD1306OLED
         iota_gfx_init(!has_usb());   // turns on the display
@@ -182,73 +126,12 @@ void iota_gfx_task_user(void) {
 }
 #endif//SSD1306OLED
 
-bool process_record_user(uint16_t keycode, keyrecord_t *record) {
+bool process_record_keymap(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
 #ifdef SSD1306OLED
     set_keylog(keycode, record);
 #endif
     // set_timelog();
-  }
-
-  switch (keycode) {
-    case QWERTY:
-      if (record->event.pressed) {
-        persistent_default_layer_set(1UL<<_QWERTY);
-      }
-      return false;
-      break;
-    case LOWER:
-      if (record->event.pressed) {
-        layer_on(_LOWER);
-        update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
-      } else {
-        layer_off(_LOWER);
-        update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
-      }
-      return false;
-      break;
-    case RAISE:
-      if (record->event.pressed) {
-        layer_on(_RAISE);
-        update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
-      } else {
-        layer_off(_RAISE);
-        update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
-      }
-      return false;
-      break;
-    case ADJUST:
-        if (record->event.pressed) {
-          layer_on(_ADJUST);
-        } else {
-          layer_off(_ADJUST);
-        }
-        return false;
-        break;
-    case RGB_MOD:
-      #ifdef RGBLIGHT_ENABLE
-        if (record->event.pressed) {
-          rgblight_mode(RGB_current_mode);
-          uint8_t shifted = get_mods() & (MOD_BIT(KC_LSHIFT)|MOD_BIT(KC_RSHIFT));
-          if (shifted) {
-            rgblight_step_reverse();
-          } else {
-            rgblight_step();
-          }
-          RGB_current_mode = rgblight_config.mode;
-        }
-      #endif
-      return false;
-      break;
-    case RGBRST:
-      #ifdef RGBLIGHT_ENABLE
-        if (record->event.pressed) {
-          eeconfig_update_rgblight_default();
-          rgblight_enable();
-          RGB_current_mode = rgblight_config.mode;
-        }
-      #endif
-      break;
   }
   return true;
 }

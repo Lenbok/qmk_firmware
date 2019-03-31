@@ -33,19 +33,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #undef RGBLED_NUM
 #define RGBLED_NUM 14
-#define RGBLIGHT_EFFECT_STATIC_GRADIENT
-#define RGBLIGHT_EFFECT_BREATHING
-#define RGBLIGHT_EFFECT_RAINBOW_MOOD
-#define RGBLIGHT_EFFECT_RAINBOW_SWIRL
-#define RGBLIGHT_EFFECT_KNIGHT
-#define RGBLIGHT_EFFECT_SNAKE
-//#define RGBLIGHT_EFFECT_ALTERNATING
-//#define RGBLIGHT_EFFECT_CHRISTMAS
-//#define RGBLIGHT_EFFECT_RGB_TEST
-//#define RGBLIGHT_ANIMATIONS
-#define RGBLIGHT_HUE_STEP 8
-#define RGBLIGHT_SAT_STEP 8
-#define RGBLIGHT_VAL_STEP 8
 
 #define MOUSEKEY_DELAY             0
 #define MOUSEKEY_INTERVAL          80
@@ -53,17 +40,3 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define MOUSEKEY_TIME_TO_MAX       0
 #define MOUSEKEY_WHEEL_MAX_SPEED   1
 #define MOUSEKEY_WHEEL_TIME_TO_MAX 0
-
-// How long before a tap becomes a hold
-#define TAPPING_TERM 200
-// Treat mod tap key as a hold even if it hasn't hit TAPPING_TERM
-#define PERMISSIVE_HOLD
-// Treat a hold following a tap as a hold rather than key repeat
-#define TAPPING_FORCE_HOLD
-// Make it possible to do rolling combos with keys that convert to other keys on hold
-//#define IGNORE_MOD_TAP_INTERRUPT
-// If a mod tap key is pressed for TAPPING_TERM with no other key pressed, issue a tap rather than treating as a (no-op) mod.
-// Use if you have a short TAPPING_TERM
-//#define RETRO_TAPPING
-
-#define DISABLE_SPACE_CADET_ROLLOVER
