@@ -17,18 +17,12 @@
 #include "quantum.h"
 
 // Layers
-#if defined(KEYBOARD_crkbd)
-    // Currently need to use the same layer IDs as default crkbd, but see PR#5471
-    #define _QWERTY 0
-    #define _LOWER 3
-    #define _RAISE 4
-    #define _ADJUST 16
-#else
-#define _QWERTY 0
-#define _LOWER 1
-#define _RAISE 2
-#define _ADJUST 3
-#endif
+enum user_layers {
+    _QWERTY = 0,
+    _LOWER,
+    _RAISE,
+    _ADJUST
+};
 
 enum custom_keycodes {
     QWERTY = SAFE_RANGE,

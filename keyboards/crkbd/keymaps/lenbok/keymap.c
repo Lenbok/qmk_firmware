@@ -82,16 +82,33 @@ void matrix_init_user(void) {
 #ifdef SSD1306OLED
 
 // When add source files to SRC in rules.mk, you can use functions.
-const char *read_layer_state(void);
 const char *read_logo(void);
 void set_keylog(uint16_t keycode, keyrecord_t *record);
 const char *read_keylog(void);
 const char *read_keylogs(void);
 
-// const char *read_mode_icon(bool swap);
-// const char *read_host_led_state(void);
-// void set_timelog(void);
-// const char *read_timelog(void);
+char layer_state_str[24];
+const char* read_layer_state(void) {
+    switch (biton32(layer_state)) {
+    case _QWERTY:
+        snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Qwerty ");
+        break;
+    case _RAISE:
+        snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Raise  ");
+        break;
+    case _LOWER:
+        snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Lower  ");
+        break;
+    case _ADJUST:
+        snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Adjust ");
+        break;
+    default:
+        snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Undef-%ld", layer_state);
+        break;
+    }
+    return layer_state_str;
+}
+
 
 void matrix_scan_user(void) {
    iota_gfx_task();
