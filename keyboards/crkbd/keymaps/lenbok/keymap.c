@@ -12,7 +12,6 @@
 extern keymap_config_t keymap_config;
 
 #ifdef RGBLIGHT_ENABLE
-//Following line allows macro to read current RGB settings
 extern rgblight_config_t rgblight_config;
 #endif
 
@@ -110,6 +109,15 @@ const char* read_layer_state(void) {
 }
 
 
+#ifdef RGBLIGHT_ENABLE
+char rbf_info_str[24];
+const char *read_rgb_info(void) {
+  snprintf(rbf_info_str, sizeof(rbf_info_str), "RGB: %s Mode: %2d ",
+           rgblight_config.enable ? "On  " : "Off ", rgblight_config.mode);
+  return rbf_info_str;
+}
+#endif
+
 void matrix_scan_user(void) {
    iota_gfx_task();
 }
@@ -117,9 +125,13 @@ void matrix_scan_user(void) {
 void matrix_render_user(struct CharacterMatrix *matrix) {
   if (is_master) {
     // If you want to change the display of OLED, you need to change here
+    // Note: the fourth row should use matrix_write, not matrix_write_ln, to prevent wrap
     matrix_write_ln(matrix, read_layer_state());
     matrix_write_ln(matrix, read_keylog());
     matrix_write_ln(matrix, read_keylogs());
+#ifdef RGBLIGHT_ENABLE
+    matrix_write(matrix, read_rgb_info());
+#endif
     //matrix_write_ln(matrix, read_mode_icon(keymap_config.swap_lalt_lgui));
     //matrix_write_ln(matrix, read_host_led_state());
     //matrix_write_ln(matrix, read_timelog());
