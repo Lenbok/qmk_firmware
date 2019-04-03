@@ -64,36 +64,3 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   )
 };
 
-
-
-#ifdef RGBLIGHT_ENABLE
-#define IDLE_TIMEOUT 600000   // Blank underglow after 600 secs of inactivity
-extern rgblight_config_t rgblight_config;
-static uint32_t rgb_idle_timer;
-static bool rgb_idle_timeout = false;
-void keyboard_post_init_user(void) {
-  rgb_idle_timer = timer_read32();
-}
-void matrix_scan_user(void) {
-  if (!rgb_idle_timeout && rgblight_config.enable) {
-    bool shouldblank = timer_elapsed32(rgb_idle_timer) < IDLE_TIMEOUT ? false : true;
-    if (shouldblank) {
-      xprintf("rgb_idle_timeout: disabling\n");
-      rgblight_disable_noeeprom();
-      rgb_idle_timeout = true;
-    }
-  }
-}
-
-bool process_record_keymap(uint16_t keycode, keyrecord_t *record) {
-  if (record->event.pressed) {
-    if (rgb_idle_timeout) {
-      xprintf("rgb_idle_timeout: enabling\n");
-      rgblight_enable_noeeprom();
-      rgb_idle_timeout = false;
-    }
-    rgb_idle_timer = timer_read32();
-  }
-  return true;
-}
-#endif
