@@ -11,6 +11,9 @@
 
 extern keymap_config_t keymap_config;
 
+#ifdef RGB_MATRIX_ENABLE
+extern rgb_config_t rgb_matrix_config;
+#endif
 #ifdef RGBLIGHT_ENABLE
 extern rgblight_config_t rgblight_config;
 #endif
@@ -110,11 +113,20 @@ const char* read_layer_state(void) {
 
 
 #ifdef RGBLIGHT_ENABLE
-char rbf_info_str[24];
-const char *read_rgb_info(void) {
-  snprintf(rbf_info_str, sizeof(rbf_info_str), "RGB: %s Mode: %2d ",
+char rgbl_info_str[24];
+const char *read_rgbl_info(void) {
+  snprintf(rgbl_info_str, sizeof(rgbl_info_str), "RGBl: %s Mode: %2d ",
            rgblight_config.enable ? "On  " : "Off ", rgblight_config.mode);
-  return rbf_info_str;
+  return rgbl_info_str;
+}
+#endif
+#ifdef RGB_MATRIX_ENABLE
+char rgbm_info_str[24];
+const char *read_rgb_matrix_info(void) {
+    uint8_t mode = rgb_matrix_get_mode();
+  snprintf(rgbm_info_str, sizeof(rgbm_info_str), "RGBm: %s Mode: %2d ",
+           rgb_matrix_config.enable ? "On  " : "Off ", mode);
+  return rgbm_info_str;
 }
 #endif
 
@@ -130,7 +142,10 @@ void matrix_render_user(struct CharacterMatrix *matrix) {
     matrix_write_ln(matrix, read_keylog());
     matrix_write_ln(matrix, read_keylogs());
 #ifdef RGBLIGHT_ENABLE
-    matrix_write(matrix, read_rgb_info());
+    matrix_write(matrix, read_rgblight_info());
+#endif
+#ifdef RGB_MATRIX_ENABLE
+    matrix_write(matrix, read_rgb_matrix_info());
 #endif
     //matrix_write_ln(matrix, read_mode_icon(keymap_config.swap_lalt_lgui));
     //matrix_write_ln(matrix, read_host_led_state());
