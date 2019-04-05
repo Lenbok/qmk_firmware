@@ -32,6 +32,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define USE_SERIAL_PD2
 
-#undef RGBLED_NUM
-#define RGBLED_NUM 27
 #define RGBLIGHT_LIMIT_VAL 120
