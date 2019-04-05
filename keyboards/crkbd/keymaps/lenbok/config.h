@@ -28,7 +28,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 // #define MASTER_RIGHT
 #define EE_HANDS
 
-#define SSD1306OLED
+#define OLED_FONT_H "keyboards/crkbd/lib/glcdfont.c"
 
 #define USE_SERIAL_PD2
 
