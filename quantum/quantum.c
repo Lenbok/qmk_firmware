@@ -59,6 +59,10 @@ extern backlight_config_t backlight_config;
 #include "encoder.h"
 #endif
 
+#ifdef OLED_DRIVER_ENABLE
+#include "oled_driver.h"
+#endif
+
 #ifdef AUDIO_ENABLE
   #ifndef GOODBYE_SONG
     #define GOODBYE_SONG SONG(GOODBYE_SOUND)
@@ -261,6 +265,12 @@ bool process_record_quantum(keyrecord_t *record) {
 
   #ifdef TAP_DANCE_ENABLE
     preprocess_tap_dance(keycode, record);
+  #endif
+
+  #if defined(OLED_DRIVER_ENABLE) && !defined(OLED_DISABLE_TIMEOUT)
+    // Wake up oled if user is using those fabulous keys!
+    if (record->event.pressed)
+      oled_on();
   #endif
 
   if (!(
@@ -1046,6 +1056,10 @@ void matrix_init_quantum() {
   #ifdef HAPTIC_ENABLE
     haptic_init();
   #endif
+  #ifdef OLED_DRIVER_ENABLE
+    // TODO: use is_keyboard_master() if using split common
+    oled_init(false);
+  #endif
   matrix_init_kb();
 }
 
@@ -1080,6 +1094,10 @@ void matrix_scan_quantum() {
 
   #ifdef HAPTIC_ENABLE
     haptic_task();
+  #endif
+
+  #ifdef OLED_DRIVER_ENABLE
+    oled_task();
   #endif
 
   matrix_scan_kb();
