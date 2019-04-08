@@ -70,7 +70,7 @@ enum custom_keycodes {
 #define ___UPPER_R2___                                                         KC_MINS, KC_EQL , KC_LCBR, KC_RCBR, KC_PIPE, _______
 #define ___UPPER_R3___                                                         KC_UNDS, KC_PLUS, KC_LBRC, KC_RBRC, KC_BSLS, _______
 
-#define ___ADJUST_L1___    RESET,  RGBRST, EEP_RST,    VRSN,    MAKE, _______
+#define ___ADJUST_L1___    RESET,  RGBRST, EEP_RST,    VRSN,    MAKE,   DEBUG
 #define ___ADJUST_L2___  KC_CAPS, RGB_HUI, RGB_SAI, RGB_VAI, RGB_SPI, RGB_MOD
 #define ___ADJUST_L3___  KC_LSFT, RGB_HUD, RGB_SAD, RGB_VAD, RGB_SPD, RGB_TOG
 #define ___ADJUST_R1___                                                        KC_MUTE, KC_HOME, KC_UP  , KC_END , _______,  KC_INS
