@@ -113,7 +113,7 @@ const char* read_layer_state(void) {
 
 #ifdef RGBLIGHT_ENABLE
 char rgbl_info_str[24];
-const char *read_rgbl_info(void) {
+const char *read_rgblight_info(void) {
   snprintf(rgbl_info_str, sizeof(rgbl_info_str), "RGBl: %s Mode: %2d ",
            rgblight_config.enable ? "On  " : "Off ", rgblight_config.mode);
   return rgbl_info_str;
@@ -169,4 +169,3 @@ bool process_record_keymap(uint16_t keycode, keyrecord_t *record) {
   }
   return true;
 }
-
