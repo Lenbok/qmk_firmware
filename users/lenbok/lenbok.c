@@ -20,14 +20,15 @@
 
 #ifdef RGBLIGHT_ENABLE
 extern rgblight_config_t rgblight_config;
+#endif
+#ifdef RGB_MATRIX_ENABLE
+extern rgb_config_t rgb_matrix_config;
+#endif
 
-#define RGBLIGHT_IDLE
-
-#ifdef RGBLIGHT_IDLE
+#ifdef RGB_IDLE
 #define IDLE_TIMEOUT 600000   // Blank underglow after 600 secs of inactivity
 static uint32_t rgb_idle_timer;
 static bool rgb_idle_timeout = false;
-#endif
 #endif
 
 
@@ -35,23 +36,50 @@ __attribute__((weak))
 void keyboard_post_init_keymap(void){ }
 
 void keyboard_post_init_user(void) {
-#ifdef RGBLIGHT_IDLE
+#ifdef RGB_IDLE
     rgb_idle_timer = timer_read32();
 #endif
     keyboard_post_init_keymap();
 }
 
+#ifdef RGB_IDLE
+#ifdef RGBLIGHT_ENABLE
+void rgb_idle_activate(void) {
+    rgblight_disable_noeeprom();
+}
+void rgb_idle_restore(void) {
+    rgblight_enable_noeeprom();
+}
+#endif
+#ifdef RGB_MATRIX_ENABLE
+static uint8_t rgb_matrix_prev = 0;
+void rgb_idle_activate(void) {
+    rgb_matrix_prev = rgb_matrix_get_mode();
+    rgb_matrix_mode(RGB_MATRIX_DIGITAL_RAIN);
+}
+void rgb_idle_restore(void) {
+    rgb_matrix_mode(rgb_matrix_prev);
+}
+#endif
+#endif
 
 __attribute__ ((weak))
 void matrix_scan_keymap(void) {}
 
 void matrix_scan_user(void) {
-#ifdef RGBLIGHT_IDLE
-    if (!rgb_idle_timeout && rgblight_config.enable) {
+#ifdef RGB_IDLE
+    if (!rgb_idle_timeout
+#ifdef RGBLIGHT_ENABLE
+        && rgblight_config.enable
+#endif
+#ifdef RGB_MATRIX_ENABLE
+        && rgb_matrix_config.enable
+#endif
+        ) {
         bool shouldblank = timer_elapsed32(rgb_idle_timer) < IDLE_TIMEOUT ? false : true;
         if (shouldblank) {
-            xprintf("rgb_idle_timeout: disabling\n");
-            rgblight_disable_noeeprom();
+            xprintf("rgb_idle_timeout: activating\n");
+            rgb_idle_activate();
             rgb_idle_timeout = true;
         }
     }
@@ -77,11 +105,11 @@ bool process_record_keymap(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-#ifdef RGBLIGHT_IDLE
+#ifdef RGB_IDLE
     if (record->event.pressed) {
         if (rgb_idle_timeout) {
-            xprintf("rgb_idle_timeout: enabling\n");
-            rgblight_enable_noeeprom();
+            xprintf("rgb_idle_timeout: restoring\n");
+            rgb_idle_restore();
             rgb_idle_timeout = false;
         }
         rgb_idle_timer = timer_read32();
