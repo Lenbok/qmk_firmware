@@ -16,7 +16,7 @@ UNICODE_ENABLE = no         # Unicode
 BLUETOOTH_ENABLE = no       # Enable Bluetooth with the Adafruit EZ-Key HID
 RGBLIGHT_ENABLE = no        # Enable WS2812 RGB underlight.
 RGB_MATRIX_ENABLE = WS2812  # Enable WS2812 RGB matrix effects.
-RGB_MATRIX_KEYPRESSES = no  # Enable reactive animations, on keypress
+RGB_MATRIX_KEYPRESSES = yes # Enable reactive animations, on keypress
 SWAP_HANDS_ENABLE = no      # Enable one-hand typing
 OLED_DRIVER_ENABLE = yes
 
