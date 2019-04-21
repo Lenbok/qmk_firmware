@@ -44,6 +44,9 @@ void keyboard_post_init_user(void) {
 
 #ifdef RGB_IDLE
 #ifdef RGBLIGHT_ENABLE
+bool rgb_idle_can_activate(void) {
+    return rgblight_config.enable;
+}
 void rgb_idle_activate(void) {
     rgblight_disable_noeeprom();
 }
@@ -53,6 +56,9 @@ void rgb_idle_restore(void) {
 #endif
 #ifdef RGB_MATRIX_ENABLE
 static uint8_t rgb_matrix_prev = 0;
+bool rgb_idle_can_activate(void) {
+    return rgb_matrix_config.enable && rgb_matrix_get_mode() != RGB_MATRIX_DIGITAL_RAIN;
+}
 void rgb_idle_activate(void) {
     rgb_matrix_prev = rgb_matrix_get_mode();
     rgb_matrix_mode(RGB_MATRIX_DIGITAL_RAIN);
@@ -68,14 +74,7 @@ void matrix_scan_keymap(void) {}
 
 void matrix_scan_user(void) {
 #ifdef RGB_IDLE
-    if (!rgb_idle_timeout
-#ifdef RGBLIGHT_ENABLE
-        && rgblight_config.enable
-#endif
-#ifdef RGB_MATRIX_ENABLE
-        && rgb_matrix_config.enable
-#endif
-        ) {
+    if (!rgb_idle_timeout && rgb_idle_can_activate()) {
         bool shouldblank = timer_elapsed32(rgb_idle_timer) < IDLE_TIMEOUT ? false : true;
         if (shouldblank) {
             xprintf("rgb_idle_timeout: activating\n");
