@@ -32,7 +32,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define USE_SERIAL_PD2
 
+#ifdef RGBLIGHT_ENABLE
+// This undef / redefinition of RGBLED_NUM is because the base
+// keyboard declaration only has it set to 12 (probably for 6 underglow per side?)
+#undef RGBLED_NUM
+#define RGBLED_NUM 27
 #define RGBLIGHT_LIMIT_VAL 120
+#endif
 
 //#define DISABLE_RGB_MATRIX_ALPHAS_MODS
 //#define DISABLE_RGB_MATRIX_GRADIENT_UP_DOWN
