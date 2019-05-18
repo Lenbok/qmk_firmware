@@ -88,11 +88,11 @@ void matrix_scan_user(void) {
 
 
 __attribute__ ((weak))
-uint32_t layer_state_set_keymap(uint32_t state) {
+layer_state_t layer_state_set_keymap(layer_state_t state) {
     return state;
 }
 
-uint32_t layer_state_set_user(uint32_t state) {
+layer_state_t layer_state_set_user(layer_state_t state) {
     state = update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
     return layer_state_set_keymap(state);
 }
@@ -130,6 +130,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #elif defined(BOOTLOADER_CATERINA)
                 SEND_STRING(":avrdude");
 #endif
+#ifdef RGB_MATRIX_ENABLE
+#ifdef RGB_MATRIX_SPLIT_RIGHT
+                SEND_STRING(" RGB_MATRIX_SPLIT_RIGHT=yes");
+#endif
+#endif
+
             }
             set_mods(mods);
         }
