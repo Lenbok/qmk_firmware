@@ -1,17 +1,13 @@
 #include "crkbd.h"
 
 
-#ifdef AUDIO_ENABLE
-    float tone_startup[][2] = SONG(STARTUP_SOUND);
-    float tone_goodbye[][2] = SONG(GOODBYE_SOUND);
-#endif
+__attribute__((weak))
+void matrix_init_user(void) {}
 
-#ifdef SSD1306OLED
-void led_set_kb(uint8_t usb_led) {
-    // put your keyboard LED indicator (ex: Caps Lock LED) toggling code here
-    //led_set_user(usb_led);
+void matrix_init_kb(void) {
+    is_master = (uint8_t)is_keyboard_master();
+    matrix_init_user();
 }
-#endif
 
 #ifdef RGB_MATRIX_ENABLE
 
@@ -113,20 +109,3 @@ led_config_t g_led_config = { {
 #endif
 
 #endif
-void matrix_init_kb(void) {
-
-    #ifdef AUDIO_ENABLE
-        _delay_ms(20); // gets rid of tick
-        PLAY_SONG(tone_startup);
-    #endif
-
-	matrix_init_user();
-};
-
-void shutdown_kb(void) {
-    #ifdef AUDIO_ENABLE
-        PLAY_SONG(tone_goodbye);
-      	_delay_ms(150);
-      	stop_all_notes();
-    #endif
-}
