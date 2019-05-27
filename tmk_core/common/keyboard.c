@@ -198,6 +198,15 @@ bool is_keyboard_master(void) {
     return true;
 }
 
+/** \brief is_keyboard_left
+ *
+ * FIXME: needs doc
+ */
+__attribute__((weak))
+bool is_keyboard_left(void) {
+    return true;
+}
+
 /** \brief keyboard_init
  *
  * FIXME: needs doc
@@ -274,7 +283,7 @@ void keyboard_task(void)
     matrix_scan();
 #endif
 
-    if (is_keyboard_master()) {
+    //if (is_keyboard_master()) {
         for (uint8_t r = 0; r < MATRIX_ROWS; r++) {
             matrix_row = matrix_get_row(r);
             matrix_change = matrix_row ^ matrix_prev[r];
@@ -302,7 +311,7 @@ void keyboard_task(void)
                 }
             }
         }
-    }
+    //}
     // call with pseudo tick event when no real key event.
 #ifdef QMK_KEYS_PER_SCAN
     // we can get here with some keys processed now.
