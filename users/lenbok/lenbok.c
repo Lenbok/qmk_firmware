@@ -55,13 +55,14 @@ void rgb_idle_restore(void) {
 }
 #endif
 #ifdef RGB_MATRIX_ENABLE
+static uint8_t rgb_matrix_idle_mode = RGB_MATRIX_DIGITAL_RAIN;
 static uint8_t rgb_matrix_prev = 0;
 bool rgb_idle_can_activate(void) {
-    return rgb_matrix_config.enable && rgb_matrix_get_mode() != RGB_MATRIX_DIGITAL_RAIN;
+    return rgb_matrix_config.enable && rgb_matrix_get_mode() != rgb_matrix_idle_mode;
 }
 void rgb_idle_activate(void) {
     rgb_matrix_prev = rgb_matrix_get_mode();
-    rgb_matrix_mode(RGB_MATRIX_DIGITAL_RAIN);
+    rgb_matrix_mode(rgb_matrix_idle_mode);
 }
 void rgb_idle_restore(void) {
     rgb_matrix_mode(rgb_matrix_prev);
@@ -154,6 +155,16 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
             eeconfig_update_rgblight_default();
             rgblight_enable();
         }
+#endif
+        return false;
+        break;
+    case RGBISET: // Set the mode used by rgb matrix version of idle
+#ifdef RGB_IDLE
+#ifdef RGB_MATRIX_ENABLE
+        if (record->event.pressed) {
+            rgb_matrix_idle_mode = rgb_matrix_get_mode();
+        }
+#endif
 #endif
         return false;
         break;
