@@ -18,17 +18,19 @@
 #include "version.h"
 
 
-#ifdef RGBLIGHT_ENABLE
+#if defined(RGBLIGHT_ENABLE)
 extern rgblight_config_t rgblight_config;
-#endif
-#ifdef RGB_MATRIX_ENABLE
+#elif defined(RGB_MATRIX_ENABLE)
 extern rgb_config_t rgb_matrix_config;
 #endif
 
-#ifdef RGB_IDLE
-#define IDLE_TIMEOUT 600000   // Blank underglow after 600 secs of inactivity
+#if defined(RGB_IDLE)
+//#define IDLE_TIMEOUT 30000   // Blank the rgb lighting after 30 secs of inactivity
+#define IDLE_TIMEOUT 600000   // Blank the rgb lighting after 600 secs of inactivity
 static uint32_t rgb_idle_timer;
 static bool rgb_idle_timeout = false;
+static uint8_t rgb_idle_mode = 0; // 0 means idle will disable lighting, otherwise specify the mode to use
+static uint8_t rgb_prev_mode = 0; // Used to restore previous lighting mode when idle deactivates.
 #endif
 
 
@@ -36,36 +38,63 @@ __attribute__((weak))
 void keyboard_post_init_keymap(void){ }
 
 void keyboard_post_init_user(void) {
-#ifdef RGB_IDLE
+#if defined(RGB_IDLE)
     rgb_idle_timer = timer_read32();
+    // Set default idle mode if desired
+/* #if defined(RGB_MATRIX_ENABLE) */
+/*     rgb_idle_mode = RGB_MATRIX_DIGITAL_RAIN; */
+/* #endif */
 #endif
     keyboard_post_init_keymap();
 }
 
-#ifdef RGB_IDLE
-#ifdef RGBLIGHT_ENABLE
+#if defined(RGB_IDLE)
+#if defined(RGBLIGHT_ENABLE)
+void rgb_idle_set_mode(void) {
+    rgb_idle_mode = rgblight_config.enable ? rgblight_config.mode : 0;
+    xprintf("rgb_idle_mode now: %u\n", rgb_idle_mode);
+}
 bool rgb_idle_can_activate(void) {
-    return rgblight_config.enable;
+    return rgblight_config.enable
+        && (rgb_idle_mode == 0 || rgblight_config.mode != rgb_idle_mode);
 }
 void rgb_idle_activate(void) {
-    rgblight_disable_noeeprom();
+    if (rgb_idle_mode) {
+        rgb_prev_mode = rgblight_config.mode;
+        rgblight_mode_noeeprom(rgb_idle_mode);
+    } else {
+        rgblight_disable_noeeprom();
+    }
 }
 void rgb_idle_restore(void) {
-    rgblight_enable_noeeprom();
+    if (rgb_idle_mode) {
+        rgblight_mode_noeeprom(rgb_prev_mode);
+    } else {
+        rgblight_enable_noeeprom();
+    }
 }
-#endif
-#ifdef RGB_MATRIX_ENABLE
-static uint8_t rgb_matrix_idle_mode = RGB_MATRIX_DIGITAL_RAIN;
-static uint8_t rgb_matrix_prev = 0;
+#elif defined(RGB_MATRIX_ENABLE)
+void rgb_idle_set_mode(void) {
+    rgb_idle_mode = rgb_matrix_config.enable ? rgb_matrix_get_mode() : 0;
+}
 bool rgb_idle_can_activate(void) {
-    return rgb_matrix_config.enable && rgb_matrix_get_mode() != rgb_matrix_idle_mode;
+    return rgb_matrix_config.enable
+        && (rgb_idle_mode == 0 || rgb_matrix_get_mode() != rgb_idle_mode);
 }
 void rgb_idle_activate(void) {
-    rgb_matrix_prev = rgb_matrix_get_mode();
-    rgb_matrix_mode(rgb_matrix_idle_mode);
+    if (rgb_idle_mode) {
+        rgb_prev_mode = rgb_matrix_get_mode();
+        rgb_matrix_mode(rgb_idle_mode);
+    } else {
+        rgb_matrix_disable_noeeprom();
+    }
 }
 void rgb_idle_restore(void) {
-    rgb_matrix_mode(rgb_matrix_prev);
+    if (rgb_idle_mode) {
+        rgb_matrix_mode(rgb_prev_mode);
+    } else {
+        rgb_matrix_enable_noeeprom();
+    }
 }
 #endif
 #endif
@@ -74,7 +103,7 @@ __attribute__ ((weak))
 void matrix_scan_keymap(void) {}
 
 void matrix_scan_user(void) {
-#ifdef RGB_IDLE
+#if defined(RGB_IDLE)
     if (!rgb_idle_timeout && rgb_idle_can_activate()) {
         bool shouldblank = timer_elapsed32(rgb_idle_timer) < IDLE_TIMEOUT ? false : true;
         if (shouldblank) {
@@ -105,7 +134,7 @@ bool process_record_keymap(uint16_t keycode, keyrecord_t *record) {
 }
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
-#ifdef RGB_IDLE
+#if defined(RGB_IDLE)
     if (record->event.pressed) {
         if (rgb_idle_timeout) {
             xprintf("rgb_idle_timeout: restoring\n");
@@ -158,13 +187,11 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #endif
         return false;
         break;
-    case RGBISET: // Set the mode used by rgb matrix version of idle
+    case RGBISET: // Set the mode used by my rgb_idle timeout handler
 #ifdef RGB_IDLE
-#ifdef RGB_MATRIX_ENABLE
         if (record->event.pressed) {
-            rgb_matrix_idle_mode = rgb_matrix_get_mode();
+            rgb_idle_set_mode();
         }
-#endif
 #endif
         return false;
         break;
