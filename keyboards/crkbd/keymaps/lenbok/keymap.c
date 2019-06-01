@@ -111,12 +111,22 @@ const char* read_layer_state(void) {
     return layer_state_str;
 }
 
+char host_led_state_str[24];
+const char *read_host_led_state(void) {
+    uint8_t leds = host_keyboard_leds();
+    snprintf(host_led_state_str, sizeof(host_led_state_str), "CL: %s NL: %s SL: %s",
+             (leds & (1 << USB_LED_CAPS_LOCK)) ? "On" : "- ",
+             (leds & (1 << USB_LED_NUM_LOCK)) ? "On" : "- ",
+             (leds & (1 << USB_LED_SCROLL_LOCK)) ? "On" : "- ");
+
+    return host_led_state_str;
+}
 
 #ifdef RGBLIGHT_ENABLE
 char rgbl_info_str[24];
 const char *read_rgblight_info(void) {
-    snprintf(rgbl_info_str, sizeof(rgbl_info_str), "RGBl: %s Mode: %2d ",
-             rgblight_config.enable ? "On  " : "Off ", rgblight_config.mode);
+    snprintf(rgbl_info_str, sizeof(rgbl_info_str), "RGBl: %s  Mode: %2d ",
+             rgblight_config.enable ? "On" : "- ", rgblight_config.mode);
     return rgbl_info_str;
 }
 #endif
@@ -124,8 +134,8 @@ const char *read_rgblight_info(void) {
 char rgbm_info_str[24];
 const char *read_rgb_matrix_info(void) {
     uint8_t mode = rgb_matrix_get_mode();
-    snprintf(rgbm_info_str, sizeof(rgbm_info_str), "RGBm: %s Mode: %2d ",
-             rgb_matrix_config.enable ? "On  " : "Off ", mode);
+    snprintf(rgbm_info_str, sizeof(rgbm_info_str), "RGBm: %s  Mode: %2d ",
+             rgb_matrix_config.enable ? "On" : "- ", mode);
     return rgbm_info_str;
 }
 #endif
@@ -139,16 +149,16 @@ void matrix_render_user(struct CharacterMatrix *matrix) {
         // If you want to change the display of OLED, you need to change here
         // Note: the fourth row should use matrix_write, not matrix_write_ln, to prevent wrap
         matrix_write_ln(matrix, read_layer_state());
-        matrix_write_ln(matrix, read_keylog());
-        matrix_write_ln(matrix, read_keylogs());
+        matrix_write_ln(matrix, read_host_led_state());
 #ifdef RGBLIGHT_ENABLE
-        matrix_write(matrix, read_rgblight_info());
+        matrix_write_ln(matrix, read_rgblight_info());
 #endif
 #ifdef RGB_MATRIX_ENABLE
-        matrix_write(matrix, read_rgb_matrix_info());
+        matrix_write_ln(matrix, read_rgb_matrix_info());
 #endif
+        matrix_write(matrix, read_keylog());
+        //matrix_write_ln(matrix, read_keylogs());
         //matrix_write_ln(matrix, read_mode_icon(keymap_config.swap_lalt_lgui));
-        //matrix_write_ln(matrix, read_host_led_state());
         //matrix_write_ln(matrix, read_timelog());
     } else {
         matrix_write(matrix, read_logo());
