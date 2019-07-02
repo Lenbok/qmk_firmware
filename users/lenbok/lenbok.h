@@ -47,6 +47,7 @@ enum custom_keycodes {
 #define KC_RASE MO(_RAISE)
 #define KC_AJST MO(_ADJUST)
 #define KC_GUGR LGUI_T(KC_GRV)
+#define KC_GUQU LGUI_T(KC_QUOT)
 #define KC_CTTB CTL_T(KC_TAB)
 
 // Define some commonly used rows
@@ -54,7 +55,7 @@ enum custom_keycodes {
 #define ___QWERTY_L2___   KC_CTTB,   KC_A,    KC_S,    KC_D,    KC_F,    KC_G
 #define ___QWERTY_L3___   KC_LSPO,   KC_Z,    KC_X,    KC_C,    KC_V,    KC_B
 #define ___QWERTY_R1___                                                           KC_Y,    KC_U,    KC_I,    KC_O,    KC_P, KC_BSPC
-#define ___QWERTY_R2___                                                           KC_H,    KC_J,    KC_K,    KC_L, KC_SCLN, KC_QUOT
+#define ___QWERTY_R2___                                                           KC_H,    KC_J,    KC_K,    KC_L, KC_SCLN, KC_GUQU
 #define ___QWERTY_R3___                                                           KC_N,    KC_M, KC_COMM,  KC_DOT, KC_SLSH, KC_RSPC
 
 #define ___LOWER_L1___    KC_ESC,    KC_1,    KC_2,    KC_3,    KC_4,    KC_5
