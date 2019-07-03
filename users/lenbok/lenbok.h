@@ -75,9 +75,9 @@ enum custom_keycodes {
 #define ___ADJUST_L1___    RESET,  RGBRST, EEP_RST,    VRSN,    MAKE, RGBISET
 #define ___ADJUST_L2___  KC_CAPS, RGB_HUI, RGB_SAI, RGB_VAI, RGB_SPI, RGB_MOD
 #define ___ADJUST_L3___  KC_LSFT, RGB_HUD, RGB_SAD, RGB_VAD, RGB_SPD, RGB_TOG
-#define ___ADJUST_R1___                                                        KC_MUTE, KC_MPLY, _______, _______, _______,  KC_INS
-#define ___ADJUST_R2___                                                        KC_MPRV, KC_VOLD, KC_VOLU, KC_MNXT, _______, VLK_TOG
-#define ___ADJUST_R3___                                                        _______, _______, _______, _______, _______, _______
+#define ___ADJUST_R1___                                                        KC_MUTE, KC_BTN1, KC_BTN3, KC_BTN2, _______,  KC_INS
+#define ___ADJUST_R2___                                                        KC_MS_L, KC_MS_D, KC_MS_U, KC_MS_R, _______, VLK_TOG
+#define ___ADJUST_R3___                                                        KC_MPRV, KC_VOLD, KC_VOLU, KC_MNXT, KC_MPLY, _______
 
 
 #define ___BASE_6_MOD___                            KC_LALT, KC_ENT,  KC_LOWR, KC_RASE,  KC_SPC, KC_RCTL
