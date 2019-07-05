@@ -160,13 +160,12 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #elif defined(BOOTLOADER_CATERINA)
                 SEND_STRING(":avrdude");
 #endif
+            }
 #ifdef RGB_MATRIX_ENABLE
 #ifdef RGB_MATRIX_SPLIT_RIGHT
                 SEND_STRING(" RGB_MATRIX_SPLIT_RIGHT=yes");
 #endif
 #endif
-
-            }
             set_mods(mods);
         }
         return false;
