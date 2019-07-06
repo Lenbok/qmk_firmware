@@ -19,6 +19,10 @@ extern rgblight_config_t rgblight_config;
 
 extern uint8_t is_master;
 
+#if defined(RGB_IDLE)
+extern uint8_t rgb_idle_mode;
+#endif
+
 #define LAYOUT_crkbd_wrapper(...)      LAYOUT(__VA_ARGS__)
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -113,10 +117,10 @@ const char* read_layer_state(void) {
 char host_led_state_str[24];
 const char *read_host_led_state(void) {
     uint8_t leds = host_keyboard_leds();
-    snprintf(host_led_state_str, sizeof(host_led_state_str), "CL: %s NL: %s SL: %s",
-             (leds & (1 << USB_LED_CAPS_LOCK)) ? "On" : "- ",
-             (leds & (1 << USB_LED_NUM_LOCK)) ? "On" : "- ",
-             (leds & (1 << USB_LED_SCROLL_LOCK)) ? "On" : "- ");
+    snprintf(host_led_state_str, sizeof(host_led_state_str), "%s %s %s",
+             (leds & (1 << USB_LED_CAPS_LOCK))   ? "CAPS" : "    ",
+             (leds & (1 << USB_LED_NUM_LOCK))    ? "NUML" : "    ",
+             (leds & (1 << USB_LED_SCROLL_LOCK)) ? "SCRL" : "    ");
 
     return host_led_state_str;
 }
@@ -124,16 +128,22 @@ const char *read_host_led_state(void) {
 #if defined(RGBLIGHT_ENABLE)
 char rgbl_info_str[24];
 const char *read_rgblight_info(void) {
-    snprintf(rgbl_info_str, sizeof(rgbl_info_str), "RGBl: %s  Mode: %2d ",
-             rgblight_config.enable ? "On" : "- ", rgblight_config.mode);
+    snprintf(rgbl_info_str, sizeof(rgbl_info_str), "RGBl: %s  %2d  %2d",
+             rgblight_config.enable ? "On" : "- ",
+             rgblight_config.mode,
+             rgb_idle_mode
+             );
     return rgbl_info_str;
 }
 #elif defined(RGB_MATRIX_ENABLE)
 char rgbm_info_str[24];
 const char *read_rgb_matrix_info(void) {
     uint8_t mode = rgb_matrix_get_mode();
-    snprintf(rgbm_info_str, sizeof(rgbm_info_str), "RGBm: %s  Mode: %2d ",
-             rgb_matrix_config.enable ? "On" : "- ", mode);
+    snprintf(rgbm_info_str, sizeof(rgbm_info_str), "RGBm: %s  %2d  %2d",
+             rgb_matrix_config.enable ? "On" : "- ",
+             mode,
+             rgb_idle_mode
+             );
     return rgbm_info_str;
 }
 #endif

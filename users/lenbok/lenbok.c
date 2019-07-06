@@ -29,7 +29,7 @@ extern rgb_config_t rgb_matrix_config;
 #define IDLE_TIMEOUT 600000   // Blank the rgb lighting after 600 secs of inactivity
 static uint32_t rgb_idle_timer;
 static bool rgb_idle_timeout = false;
-static uint8_t rgb_idle_mode = 0; // 0 means idle will disable lighting, otherwise specify the mode to use
+uint8_t rgb_idle_mode = 0; // 0 means idle will disable lighting, otherwise specify the mode to use
 static uint8_t rgb_prev_mode = 0; // Used to restore previous lighting mode when idle deactivates.
 #endif
 
