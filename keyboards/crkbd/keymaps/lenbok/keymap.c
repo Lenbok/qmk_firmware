@@ -11,10 +11,9 @@
 
 extern keymap_config_t keymap_config;
 
-#ifdef RGB_MATRIX_ENABLE
+#if defined(RGB_MATRIX_ENABLE)
 extern rgb_config_t rgb_matrix_config;
-#endif
-#ifdef RGBLIGHT_ENABLE
+#elif defined(RGBLIGHT_ENABLE)
 extern rgblight_config_t rgblight_config;
 #endif
 
@@ -122,15 +121,14 @@ const char *read_host_led_state(void) {
     return host_led_state_str;
 }
 
-#ifdef RGBLIGHT_ENABLE
+#if defined(RGBLIGHT_ENABLE)
 char rgbl_info_str[24];
 const char *read_rgblight_info(void) {
     snprintf(rgbl_info_str, sizeof(rgbl_info_str), "RGBl: %s  Mode: %2d ",
              rgblight_config.enable ? "On" : "- ", rgblight_config.mode);
     return rgbl_info_str;
 }
-#endif
-#ifdef RGB_MATRIX_ENABLE
+#elif defined(RGB_MATRIX_ENABLE)
 char rgbm_info_str[24];
 const char *read_rgb_matrix_info(void) {
     uint8_t mode = rgb_matrix_get_mode();
@@ -150,10 +148,9 @@ void matrix_render_user(struct CharacterMatrix *matrix) {
         // Note: the fourth row should use matrix_write, not matrix_write_ln, to prevent wrap
         matrix_write_ln(matrix, read_layer_state());
         matrix_write_ln(matrix, read_host_led_state());
-#ifdef RGBLIGHT_ENABLE
+#if defined(RGBLIGHT_ENABLE)
         matrix_write_ln(matrix, read_rgblight_info());
-#endif
-#ifdef RGB_MATRIX_ENABLE
+#elif defined(RGB_MATRIX_ENABLE)
         matrix_write_ln(matrix, read_rgb_matrix_info());
 #endif
         matrix_write(matrix, read_keylog());
