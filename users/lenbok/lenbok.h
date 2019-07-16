@@ -47,7 +47,7 @@ enum custom_keycodes {
 #define KC_RASE MO(_RAISE)
 #define KC_AJST MO(_ADJUST)
 #define KC_GUGR LGUI_T(KC_GRV)
-#define KC_GUQU LGUI_T(KC_QUOT)
+#define KC_GUES LGUI_T(KC_ESC)
 #define KC_CTTB CTL_T(KC_TAB)
 
 // Define some commonly used rows
@@ -55,17 +55,17 @@ enum custom_keycodes {
 #define ___QWERTY_L2___   KC_CTTB,   KC_A,    KC_S,    KC_D,    KC_F,    KC_G
 #define ___QWERTY_L3___   KC_LSPO,   KC_Z,    KC_X,    KC_C,    KC_V,    KC_B
 #define ___QWERTY_R1___                                                           KC_Y,    KC_U,    KC_I,    KC_O,    KC_P, KC_BSPC
-#define ___QWERTY_R2___                                                           KC_H,    KC_J,    KC_K,    KC_L, KC_SCLN, KC_GUQU
+#define ___QWERTY_R2___                                                           KC_H,    KC_J,    KC_K,    KC_L, KC_SCLN, KC_QUOT
 #define ___QWERTY_R3___                                                           KC_N,    KC_M, KC_COMM,  KC_DOT, KC_SLSH, KC_RSPC
 
-#define ___LOWER_L1___    KC_ESC,    KC_1,    KC_2,    KC_3,    KC_4,    KC_5
+#define ___LOWER_L1___   KC_GUES,    KC_1,    KC_2,    KC_3,    KC_4,    KC_5
 #define ___LOWER_L2___   _______,   KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5
 #define ___LOWER_L3___   _______,   KC_F6,   KC_F7,   KC_F8,   KC_F9,  KC_F10
 #define ___LOWER_R1___                                                            KC_6,    KC_7,    KC_8,    KC_9,    KC_0, _______
 #define ___LOWER_R2___                                                         KC_LEFT, KC_DOWN,   KC_UP, KC_RGHT, _______, _______
 #define ___LOWER_R3___                                                         _______, _______, _______, _______, _______, _______
 
-#define ___UPPER_L1___    KC_ESC, KC_EXLM,  KC_AT , KC_HASH, KC_DLR , KC_PERC
+#define ___UPPER_L1___   KC_GUES, KC_EXLM,  KC_AT , KC_HASH, KC_DLR , KC_PERC
 #define ___UPPER_L2___   _______, _______, _______, _______, _______, _______
 #define ___UPPER_L3___   _______, _______, _______, _______, _______, _______
 #define ___UPPER_R1___                                                         KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, _______
