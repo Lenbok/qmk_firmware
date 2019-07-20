@@ -57,7 +57,7 @@ static I2C_slave_buffer_t * const i2c_buffer = (I2C_slave_buffer_t *)i2c_slave_r
 // Get rows from other half over i2c
 bool transport_master(matrix_row_t master_matrix[], matrix_row_t slave_matrix[]) {
   i2c_readReg(SLAVE_I2C_ADDRESS, I2C_KEYMAP_SLAVE_START, (void *)slave_matrix, sizeof(i2c_buffer->smatrix), TIMEOUT);
-  memcpy((void*)i2c_buffer->mmatrix, (void *)master_matrix, sizeof(i2c_buffer->mmatrix));
+  i2c_writeReg(SLAVE_I2C_ADDRESS, I2C_KEYMAP_MASTER_START, (void *)master_matrix, sizeof(i2c_buffer->mmatrix), TIMEOUT);
 
   // write backlight info
 #  ifdef BACKLIGHT_ENABLE
@@ -73,8 +73,7 @@ bool transport_master(matrix_row_t master_matrix[], matrix_row_t slave_matrix[])
   if (rgblight_get_change_flags()) {
     rgblight_syncinfo_t rgblight_sync;
     rgblight_get_syncinfo(&rgblight_sync);
-    if (i2c_writeReg(SLAVE_I2C_ADDRESS, I2C_RGB_START,
-                     (void *)&rgblight_sync, sizeof(rgblight_sync), TIMEOUT) >= 0) {
+    if (i2c_writeReg(SLAVE_I2C_ADDRESS, I2C_RGB_START, (void *)&rgblight_sync, sizeof(rgblight_sync), TIMEOUT) >= 0) {
       rgblight_clear_change_flags();
     }
   }
@@ -94,7 +93,7 @@ void transport_slave(matrix_row_t master_matrix[], matrix_row_t slave_matrix[]) 
 
   // Copy matrix to I2C buffer
   memcpy((void*)i2c_buffer->smatrix, (void *)slave_matrix, sizeof(i2c_buffer->smatrix));
-  i2c_readReg(SLAVE_I2C_ADDRESS, I2C_KEYMAP_MASTER_START, (void *)master_matrix, sizeof(i2c_buffer->mmatrix), TIMEOUT);
+  memcpy((void*)master_matrix, (void *)i2c_buffer->mmatrix, sizeof(i2c_buffer->mmatrix));
 
 // Read Backlight Info
 #  ifdef BACKLIGHT_ENABLE
