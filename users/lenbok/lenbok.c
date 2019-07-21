@@ -29,8 +29,10 @@ extern rgb_config_t rgb_matrix_config;
 #define IDLE_TIMEOUT 600000   // Blank the rgb lighting after 600 secs of inactivity
 static uint32_t rgb_idle_timer;
 static bool rgb_idle_timeout = false;
+#if (defined(RGBLIGHT_ENABLE) || defined(RGB_MATRIX_ENABLE))
 uint8_t rgb_idle_mode = 0; // 0 means idle will disable lighting, otherwise specify the mode to use
 static uint8_t rgb_prev_mode = 0; // Used to restore previous lighting mode when idle deactivates.
+#endif
 #endif
 
 
@@ -49,54 +51,56 @@ void keyboard_post_init_user(void) {
 }
 
 #if defined(RGB_IDLE)
-#if defined(RGBLIGHT_ENABLE)
 void rgb_idle_set_mode(void) {
+#if defined(RGBLIGHT_ENABLE)
     rgb_idle_mode = rgblight_config.enable ? rgblight_config.mode : 0;
-    xprintf("rgb_idle_mode now: %u\n", rgb_idle_mode);
+#elif defined(RGB_MATRIX_ENABLE)
+    rgb_idle_mode = rgb_matrix_config.enable ? rgb_matrix_get_mode() : 0;
+#endif
 }
 bool rgb_idle_can_activate(void) {
+#if defined(RGBLIGHT_ENABLE)
     return rgblight_config.enable
         && (rgb_idle_mode == 0 || rgblight_config.mode != rgb_idle_mode);
+#elif defined(RGB_MATRIX_ENABLE)
+    return rgb_matrix_config.enable
+        && (rgb_idle_mode == 0 || rgb_matrix_get_mode() != rgb_idle_mode);
+#else
+    return true;
+#endif
 }
 void rgb_idle_activate(void) {
+#if defined(RGBLIGHT_ENABLE)
     if (rgb_idle_mode) {
         rgb_prev_mode = rgblight_config.mode;
         rgblight_mode_noeeprom(rgb_idle_mode);
     } else {
         rgblight_disable_noeeprom();
     }
-}
-void rgb_idle_restore(void) {
-    if (rgb_idle_mode) {
-        rgblight_mode_noeeprom(rgb_prev_mode);
-    } else {
-        rgblight_enable_noeeprom();
-    }
-}
 #elif defined(RGB_MATRIX_ENABLE)
-void rgb_idle_set_mode(void) {
-    rgb_idle_mode = rgb_matrix_config.enable ? rgb_matrix_get_mode() : 0;
-}
-bool rgb_idle_can_activate(void) {
-    return rgb_matrix_config.enable
-        && (rgb_idle_mode == 0 || rgb_matrix_get_mode() != rgb_idle_mode);
-}
-void rgb_idle_activate(void) {
     if (rgb_idle_mode) {
         rgb_prev_mode = rgb_matrix_get_mode();
         rgb_matrix_mode(rgb_idle_mode);
     } else {
         rgb_matrix_disable_noeeprom();
     }
+#endif
 }
 void rgb_idle_restore(void) {
+#if defined(RGBLIGHT_ENABLE)
+    if (rgb_idle_mode) {
+        rgblight_mode_noeeprom(rgb_prev_mode);
+    } else {
+        rgblight_enable_noeeprom();
+    }
+#elif defined(RGB_MATRIX_ENABLE)
     if (rgb_idle_mode) {
         rgb_matrix_mode(rgb_prev_mode);
     } else {
         rgb_matrix_enable_noeeprom();
     }
-}
 #endif
+}
 #endif
 
 __attribute__ ((weak))
@@ -107,7 +111,7 @@ void matrix_scan_user(void) {
     if (!rgb_idle_timeout && rgb_idle_can_activate()) {
         bool shouldblank = timer_elapsed32(rgb_idle_timer) < IDLE_TIMEOUT ? false : true;
         if (shouldblank) {
-            xprintf("rgb_idle_timeout: activating\n");
+            //xprintf("rgb_idle_timeout: activating\n");
             rgb_idle_activate();
             rgb_idle_timeout = true;
         }
@@ -137,7 +141,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
 #if defined(RGB_IDLE)
     if (record->event.pressed) {
         if (rgb_idle_timeout) {
-            xprintf("rgb_idle_timeout: restoring\n");
+            //xprintf("rgb_idle_timeout: restoring\n");
             rgb_idle_restore();
             rgb_idle_timeout = false;
         }
