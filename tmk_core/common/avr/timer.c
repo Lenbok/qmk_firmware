@@ -140,14 +140,6 @@ uint32_t timer_elapsed32(uint32_t last)
     return TIMER_DIFF_32(t, last);
 }
 
-inline
-void timer_sync(uint32_t sync)
-{
-    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
-      timer_count = sync;
-    }
-}
-
 // excecuted once per 1ms.(excess for just timer count?)
 #ifndef __AVR_ATmega32A__
 #define TIMER_INTERRUPT_VECTOR TIMER0_COMPA_vect

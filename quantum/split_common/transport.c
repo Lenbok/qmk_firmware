@@ -84,12 +84,13 @@ bool transport_master(matrix_row_t master_matrix[], matrix_row_t slave_matrix[])
   encoder_update_raw(i2c_buffer->encoder_state);
 #  endif
 
-  i2c_buffer->sync_time = timer_read32();
+  sync_timer_update(timer_read32());
+  i2c_buffer->sync_time = sync_timer_read32();
   return true;
 }
 
 void transport_slave(matrix_row_t master_matrix[], matrix_row_t slave_matrix[]) {
-  timer_sync(i2c_buffer->sync_time + 1); // 1ms offset to account for tansfer speed
+  sync_timer_update(i2c_buffer->sync_time + 1); // 1ms offset to account for tansfer speed
 
   // Copy matrix to I2C buffer
   memcpy((void*)i2c_buffer->smatrix, (void *)slave_matrix, sizeof(i2c_buffer->smatrix));
@@ -244,14 +245,15 @@ bool transport_master(matrix_row_t master_matrix[], matrix_row_t slave_matrix[])
   encoder_update_raw((uint8_t *)serial_s2m_buffer.encoder_state);
 #  endif
 
-  serial_m2s_buffer.sync_timer = timer_read32();
+  sync_timer_update(timer_read32());
+  serial_m2s_buffer.sync_timer = sync_timer_read32();
   return true;
 }
 
 void transport_slave(matrix_row_t master_matrix[], matrix_row_t slave_matrix[]) {
   transport_rgblight_slave();
 
-  timer_sync(serial_m2s_buffer.sync_timer + 2);  // 2ms offset to account for tansfer speed
+  sync_timer_update(serial_m2s_buffer.sync_timer + 2);  // 2ms offset to account for tansfer speed
 
   // TODO: if MATRIX_COLS > 8 change to pack()
   for (int i = 0; i < ROWS_PER_HAND; ++i) {

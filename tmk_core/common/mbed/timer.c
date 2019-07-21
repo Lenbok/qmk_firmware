@@ -39,8 +39,3 @@ uint32_t timer_elapsed32(uint32_t last)
 {
     return TIMER_DIFF_32(timer_read32(), last);
 }
-
-void timer_sync(uint32_t sync)
-{
-    timer_count = sync;
-}

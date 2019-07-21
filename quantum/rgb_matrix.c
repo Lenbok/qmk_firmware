@@ -271,13 +271,13 @@ static rgb_task_states rgb_task_state = SYNCING;
 
 static void rgb_task_timers(void) {
   // Update double buffer timers
-  uint16_t deltaTime = timer_elapsed32(rgb_counters_buffer);
+  uint16_t deltaTime = sync_timer_elapsed32(rgb_counters_buffer);
 #ifdef RGB_MATRIX_SPLIT
 // probably not needed with recent transport changes
   //if (!is_keyboard_master() && deltaTime > RGB_MATRIX_LED_FLUSH_LIMIT)
   //  deltaTime = 4; // In most cases rgb matrix task won't run any slower than this
 #endif
-  rgb_counters_buffer = timer_read32();
+  rgb_counters_buffer = sync_timer_read32();
   if (g_rgb_counters.any_key_hit < UINT32_MAX) {
     if (UINT32_MAX - deltaTime < g_rgb_counters.any_key_hit) {
       g_rgb_counters.any_key_hit = UINT32_MAX;
@@ -301,7 +301,7 @@ static void rgb_task_timers(void) {
 
 static void rgb_task_sync(void) {
   // next task
-  if (timer_elapsed32(g_rgb_counters.tick) >= RGB_MATRIX_LED_FLUSH_LIMIT)
+  if (sync_timer_elapsed32(g_rgb_counters.tick) >= RGB_MATRIX_LED_FLUSH_LIMIT)
     rgb_task_state = STARTING;
 }
 
