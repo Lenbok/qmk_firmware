@@ -27,6 +27,7 @@
 #include "wait.h"
 #include "progmem.h"
 #include "timer.h"
+#include "sync_timer.h"
 #include "rgblight.h"
 #include "color.h"
 #include "debug.h"
