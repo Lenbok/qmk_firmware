@@ -40,7 +40,9 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define RGBLIGHT_LIMIT_VAL 120
 #endif
 
+#ifdef RGB_MATRIX_ENABLE
 #define RGB_MATRIX_FRAMEBUFFER_EFFECTS
+#define RGB_MATRIX_MAXIMUM_BRIGHTNESS 150 // limits maximum brightness of LEDs to 150 out of 255. Higher may cause the controller to crash.
 
 //#define DISABLE_RGB_MATRIX_ALPHAS_MODS
 //#define DISABLE_RGB_MATRIX_GRADIENT_UP_DOWN
@@ -60,8 +62,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define DISABLE_RGB_MATRIX_CYCLE_PINWHEEL
 #define DISABLE_RGB_MATRIX_CYCLE_SPIRAL
 #define DISABLE_RGB_MATRIX_DUAL_BEACON
-//#define DISABLE_RGB_MATRIX_RAINBOW_BEACON
-//#define DISABLE_RGB_MATRIX_RAINBOW_PINWHEELS
+#define DISABLE_RGB_MATRIX_RAINBOW_BEACON
+#define DISABLE_RGB_MATRIX_RAINBOW_PINWHEELS
 #define DISABLE_RGB_MATRIX_RAINDROPS
 #define DISABLE_RGB_MATRIX_JELLYBEAN_RAINDROPS
 //#define DISABLE_RGB_MATRIX_TYPING_HEATMAP
@@ -78,3 +80,4 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 //#define DISABLE_RGB_MATRIX_MULTISPLASH
 #define DISABLE_RGB_MATRIX_SOLID_SPLASH
 //#define DISABLE_RGB_MATRIX_SOLID_MULTISPLASH
+#endif
