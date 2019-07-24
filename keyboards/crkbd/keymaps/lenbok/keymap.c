@@ -116,6 +116,7 @@ void set_keylog(uint16_t keycode, keyrecord_t *record) {
 }
 
 
+#if defined(RGBLIGHT_ENABLE) || defined(RGB_MATRIX_ENABLE)
 char rgb_info_str[6];
 void render_rgb_info(void) {
 #if defined(RGBLIGHT_ENABLE)
@@ -138,6 +139,7 @@ void render_rgb_info(void) {
     oled_write_ln(rgb_info_str, false);
 #endif
 }
+#endif
 
 // If cond is true, render data (possibly inverted), else clear the line
 void render_line_P(bool cond, const char* data, bool invert) {
