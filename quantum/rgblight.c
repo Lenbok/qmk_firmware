@@ -27,6 +27,7 @@
 #include "wait.h"
 #include "progmem.h"
 #include "timer.h"
+#include "sync_timer.h"
 #include "rgblight.h"
 #include "color.h"
 #include "debug.h"
@@ -751,7 +752,7 @@ void rgblight_timer_enable(void) {
   if( !is_static_effect(rgblight_config.mode) ) {
       rgblight_status.timer_enabled = true;
   }
-  animation_status.last_timer = timer_read();
+  animation_status.last_timer = sync_timer_read();
   RGBLIGHT_SPLIT_SET_CHANGE_TIMER_ENABLE;
   dprintf("rgblight timer enabled.\n");
 }
@@ -854,18 +855,18 @@ void rgblight_task(void) {
 #endif
     if (animation_status.restart) {
       animation_status.restart = false;
-      animation_status.last_timer = timer_read() - interval_time - 1;
+      animation_status.last_timer = sync_timer_read() - interval_time - 1;
       animation_status.pos16 = 0; // restart signal to local each effect
     }
-    if (timer_elapsed(animation_status.last_timer) >= interval_time) {
+    if (sync_timer_elapsed(animation_status.last_timer) >= interval_time) {
 #if defined(RGBLIGHT_SPLIT) && !defined(RGBLIGHT_SPLIT_NO_ANIMATION_SYNC)
       static uint16_t report_last_timer = 0;
       static bool tick_flag = false;
       uint16_t oldpos16;
       if (tick_flag) {
         tick_flag = false;
-        if (timer_elapsed(report_last_timer) >= 30000) {
-            report_last_timer = timer_read();
+        if (sync_timer_elapsed(report_last_timer) >= 30000) {
+            report_last_timer = sync_timer_read();
             dprintf("rgblight animation tick report to slave\n");
             RGBLIGHT_SPLIT_ANIMATION_TICK;
         }
