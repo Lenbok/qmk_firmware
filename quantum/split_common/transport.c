@@ -84,9 +84,9 @@ bool transport_master(matrix_row_t master_matrix[], matrix_row_t slave_matrix[])
   encoder_update_raw(i2c_buffer->encoder_state);
 #  endif
 
-  uint32_t sync_time = timer_read32();
-  sync_timer_update(sync_time);
-  i2c_writeReg(SLAVE_I2C_ADDRESS, I2C_SYNC_TIME_START, (void *)sync_time, sizeof(i2c_buffer->sync_time), TIMEOUT);
+  i2c_buffer->sync_time = timer_read32();
+  sync_timer_update(i2c_buffer->sync_time);
+  i2c_writeReg(SLAVE_I2C_ADDRESS, I2C_SYNC_TIME_START, (void *)&i2c_buffer->sync_time, sizeof(i2c_buffer->sync_time), TIMEOUT);
   return true;
 }
 
