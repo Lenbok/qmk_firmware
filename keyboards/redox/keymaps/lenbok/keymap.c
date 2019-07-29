@@ -64,3 +64,28 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
   )
 };
 
+#ifdef RGB_MATRIX_ENABLE
+// 14 underglow LEDs per side
+led_config_t g_led_config = { {
+    {  NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED },
+    {  NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED },
+    {  NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED },
+    {  NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED },
+    {  NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED },
+    {  NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED },
+    {  NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED },
+    {  NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED },
+    {  NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED },
+    {  NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED, NO_LED }
+}, {
+    { 104,  16 }, {  96,  16 }, {  88,  16 }, {  80,  16 }, {  72,  16 }, {  64,  16 }, {  56,  16 },
+    {  48,  16 }, {  40,  16 }, {  32,  16 }, {  24,  16 }, {  16,  16 }, {   8,  16 }, {   0,  16 },
+    { 120,  16 }, { 128,  16 }, { 136,  16 }, { 144,  16 }, { 152,  16 }, { 160,  16 }, { 168,  16 },
+    { 176,  16 }, { 184,  16 }, { 192,  16 }, { 200,  16 }, { 208,  16 }, { 216,  16 }, { 224,  16 }
+}, {
+    2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2,
+    2, 2, 2, 2, 2, 2, 2
+} };
+#endif
