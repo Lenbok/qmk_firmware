@@ -41,6 +41,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #endif
 
 #define RGB_MATRIX_FRAMEBUFFER_EFFECTS
+#define RGB_MATRIX_MAXIMUM_BRIGHTNESS 120
+#define RGB_MATRIX_STARTUP_MODE RGB_MATRIX_RAINBOW_MOVING_CHEVRON
 
 //#define DISABLE_RGB_MATRIX_ALPHAS_MODS
 //#define DISABLE_RGB_MATRIX_GRADIENT_UP_DOWN
