@@ -8,6 +8,10 @@ LED_ANIMATIONS = yes        # LED animations
 OLED_ENABLE = yes            # OLED_ENABLE
 LOCAL_GLCDFONT = yes        # use each keymaps "helixfont.h" insted of "common/glcdfont.c"
 
+FLIPPED_NRFMICRO_MASTER = yes # Set to yes if master side uses a nrfmicro with jumpers on the reverse bridged
+FLIPPED_NRFMICRO_SLAVE = no   # Set to yes if slave side uses a nrfmicro with jumpers on the reverse bridged
+
+
 define HELIX_CUSTOMISE_MSG
   $(info Helix customize)
   $(info -  OLED_ENABLE=$(OLED_ENABLE))
@@ -35,6 +39,16 @@ else ifeq ($(strip $(LED_UNDERGLOW_ENABLE)), yes)
   RGBLIGHT_ENABLE = yes
 else
   RGBLIGHT_ENABLE = no
+endif
+
+ifeq ($(strip $(NRF_SEPARATE)), slave)
+  ifeq ($(strip $(FLIPPED_NRFMICRO_SLAVE)), yes)
+    OPT_DEFS += -DFLIPPED_NRFMICRO
+  endif
+else ifeq ($(strip $(NRF_SEPARATE)), master)
+  ifeq ($(strip $(FLIPPED_NRFMICRO_MASTER)), yes)
+    OPT_DEFS += -DFLIPPED_NRFMICRO
+  endif
 endif
 
 ifeq ($(strip $(LED_ANIMATIONS)), yes)
@@ -65,4 +79,3 @@ SRC +=  ../../lib/glcdfont.c \
         # ./lib/mode_icon_reader.c \
         # ./lib/host_led_state_reader.c \
         ../../lib/timelogger.c \
-
