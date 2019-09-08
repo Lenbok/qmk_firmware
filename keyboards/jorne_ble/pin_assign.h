@@ -42,8 +42,7 @@
 #define F4 PIN20
 
 #define THIS_DEVICE_ROWS 4
-#define THIS_DEVICE_COLS 7
+#define THIS_DEVICE_COLS 6
 
 #define MATRIX_ROW_PINS { D4, C6, D7, E6 }
-#define MATRIX_COL_PINS { F4, F5, F6, F7, B1, B3, B2 }
-
+#define MATRIX_COL_PINS { F4, F5, F6, F7, B1, B3 }
