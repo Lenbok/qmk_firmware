@@ -58,6 +58,25 @@ void matrix_init_user() {
 
   nrf_gpio_pin_set(LED_PIN);
 
+
+  select_row(3);
+  wait_us(50);
+  matrix_row_t row = read_cols();
+  unselect_rows();
+  if (row == 0b111000) {
+    delete_bonds();
+    for (int i = 0; i < 5; i++) {
+      nrf_gpio_pin_clear(LED_PIN);
+      nrf_delay_ms(250);
+
+      nrf_gpio_pin_set(LED_PIN);
+      nrf_delay_ms(50);
+    }
+    nrf_gpio_pin_set(LED_PIN);
+  } else if (row == 0b10) {
+    bootloader_flag = true;
+  }
+
 #ifdef RGBLIGHT_ENABLE
   // turn on RGB leds by default, debug option *remove me*
   // mode change doesnt work until you press bl reset (adjust+lrst)
@@ -69,16 +88,6 @@ void matrix_init_user() {
   #ifdef SSD1306OLED
       iota_gfx_init(!IS_LEFT_HAND);   // turns on the display
   #endif
-
-  select_row(3);
-  wait_us(50);
-  matrix_row_t row = read_cols();
-  unselect_rows();
-  if (row == 0b111000) {
-    delete_bonds();
-  } else if (row == 0b10) {
-    bootloader_flag = true;
-  }
 }
 
 void matrix_scan_user() {
@@ -90,4 +99,3 @@ void matrix_scan_user() {
   iota_gfx_task();  // this is what updates the display continuously
 #endif
 }
-
