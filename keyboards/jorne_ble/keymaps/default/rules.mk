@@ -9,7 +9,7 @@ OLED_ENABLE = yes            # OLED_ENABLE
 LOCAL_GLCDFONT = yes        # use each keymaps "helixfont.h" insted of "common/glcdfont.c"
 
 FLIPPED_NRFMICRO_MASTER = yes # Set to yes if master side uses a nrfmicro with jumpers on the reverse bridged
-FLIPPED_NRFMICRO_SLAVE = no   # Set to yes if slave side uses a nrfmicro with jumpers on the reverse bridged
+FLIPPED_NRFMICRO_SLAVE = yes   # Set to yes if slave side uses a nrfmicro with jumpers on the reverse bridged
 
 
 define HELIX_CUSTOMISE_MSG
