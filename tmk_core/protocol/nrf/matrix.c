@@ -120,6 +120,11 @@ matrix_row_t read_row(uint8_t row);
 #endif
 
 __attribute__ ((weak))
+void matrix_init_kb(void) {
+    matrix_init_user();
+}
+
+__attribute__ ((weak))
 void matrix_init_user(void) {
 }
 
@@ -181,7 +186,7 @@ void matrix_init(void) {
 #if defined(USE_AS_I2C_SLAVE)
   i2cs_init();
 #endif
-  matrix_init_user();
+  matrix_init_kb();
 }
 
 static inline void set_received_key(ble_switch_state_t key, bool from_slave) {

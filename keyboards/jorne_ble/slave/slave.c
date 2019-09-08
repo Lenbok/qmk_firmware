@@ -42,7 +42,7 @@ void select_row(uint8_t row);
 matrix_row_t read_cols(void);
 static bool bootloader_flag = false;
 
-void matrix_init_user() {
+void matrix_init_kb() {
 
   // blink on power on
   nrf_gpio_cfg_output(LED_PIN);
@@ -88,9 +88,11 @@ void matrix_init_user() {
   #ifdef SSD1306OLED
       iota_gfx_init(!IS_LEFT_HAND);   // turns on the display
   #endif
+
+  matrix_init_user();
 }
 
-void matrix_scan_user() {
+void matrix_scan_kb(void) {
  static int cnt;
  if (bootloader_flag && cnt++==500) {
    bootloader_jump();
@@ -98,4 +100,6 @@ void matrix_scan_user() {
 #ifdef SSD1306OLED
   iota_gfx_task();  // this is what updates the display continuously
 #endif
+
+  matrix_scan_user();
 }

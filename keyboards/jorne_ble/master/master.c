@@ -39,7 +39,7 @@ void select_row(uint8_t row);
 matrix_row_t read_cols(void);
 static bool bootloader_flag = false;
 
-void matrix_init_user() {
+void matrix_init_kb() {
 //  rgblight_mode_noeeprom(35);
   set_usb_enabled(true);
 
@@ -87,10 +87,14 @@ void matrix_init_user() {
   #ifdef SSD1306OLED
       iota_gfx_init(!IS_LEFT_HAND);   // turns on the display
   #endif
+
+  matrix_init_user();
 }
 
-void matrix_scan_user(void) {
+void matrix_scan_kb(void) {
   #ifdef SSD1306OLED
     iota_gfx_task();  // this is what updates the display continuously
   #endif
+
+  matrix_scan_user();
 }
