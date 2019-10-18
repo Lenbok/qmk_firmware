@@ -1,6 +1,6 @@
 
-RGBLIGHT_ENABLE = yes
-LED_ANIMATIONS = yes        # LED animations
+RGBLIGHT_ENABLE = no
+LED_ANIMATIONS = no        # LED animations
 OLED_ENABLE = yes           # OLED_ENABLE
 LOCAL_GLCDFONT = yes        # use each keymaps "helixfont.h" insted of "common/glcdfont.c"
 
@@ -39,7 +39,6 @@ endif
 
 # If you want to change the display of OLED, you need to change here
 SRC +=  ../../lib/glcdfont.c \
-        ../../lib/rgb_state_reader.c \
         ../../lib/layer_state_reader.c \
         ../../lib/logo_reader.c \
         ../../lib/keylogger.c \

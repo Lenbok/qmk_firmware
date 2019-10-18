@@ -5,13 +5,6 @@
   #include "ssd1306.h"
 #endif
 
-// define variables for reactive RGB
-bool TOG_STATUS = false;
-int RGB_current_mode;
-#ifdef RGBLIGHT_ENABLE
-//Following line allows macro to read current RGB settings
-extern rgblight_config_t rgblight_config;
-#endif
 
 const uint8_t is_master = IS_LEFT_HAND;
 
@@ -61,15 +54,13 @@ extern keymap_config_t keymap_config;
 #define KC_LOWER LOWER
 #define KC_RAISE RAISE
 #define KC_RST   RESET
-#define KC_LRST  RGBRST
-#define KC_LTOG  RGB_TOG
-#define KC_LHUI  RGB_HUI
-#define KC_LHUD  RGB_HUD
-#define KC_LSAI  RGB_SAI
-#define KC_LSAD  RGB_SAD
-#define KC_LVAI  RGB_VAI
-#define KC_LVAD  RGB_VAD
-#define KC_LSMOD RGB_SMOD
+#define KC_DFU   ENT_DFU
+#define KC_BATT  BATT_LV
+#define KC_UEN   USB_EN
+#define KC_UDIS  USB_DIS
+#define KC_BADV  AD_WO_L
+#define KC_BEN   BLE_EN
+#define KC_BDIS  BLE_DIS
 #define KC_GUGR  LGUI_T(KC_GRV)
 #define KC_GUES  LGUI_T(KC_ESC)
 #define KC_CTLTB CTL_T(KC_TAB)
@@ -116,29 +107,20 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [_ADJUST] = LAYOUT_kc( \
   //,-----------------------------------------.                ,-----------------------------------------.
-        RST,  LRST, XXXXX, XXXXX, XXXXX, XXXXX,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
+        RST,   DFU,  BADV, XXXXX, XXXXX,  BATT,                   MUTE, XXXXX, XXXXX, XXXXX, XXXXX,   INS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       LTOG,  LHUI,  LSAI,  LVAI, XXXXX, XXXXX,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
+       CAPS,   UEN,   BEN, XXXXX, XXXXX, XXXXX,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      LSMOD,  LHUD,  LSAD,  LVAD, XXXXX, XXXXX,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
+       TRNS,  UDIS,  BDIS, XXXXX, XXXXX, XXXXX,                   MPRV,  VOLD,  VOLU,  MNXT,  MPLY,  TRNS,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
                                    LALT, SPC,  LOWER,     RAISE,  ENT,  RCTL \
                               //`--------------------'  `--------------------'
   )
 };
 
-void persistent_default_layer_set(uint16_t default_layer) {
-  eeconfig_update_default_layer(default_layer);
-  default_layer_set(default_layer);
-  layer_state_set(default_layer);
-}
-
 // Setting ADJUST layer RGB back to default
 void update_tri_layer_RGB(uint8_t layer1, uint8_t layer2, uint8_t layer3) {
   if (IS_LAYER_ON(layer1) && IS_LAYER_ON(layer2)) {
-    #ifdef RGBLIGHT_ENABLE
-       //rgblight_mode(RGB_current_mode);
-    #endif
     layer_on(layer3);
   } else {
     layer_off(layer3);
@@ -152,47 +134,55 @@ void set_keylog(uint16_t keycode, keyrecord_t *record);
 const char *read_keylog(void);
 const char *read_keylogs(void);
 
+char host_led_state_str[24];
+const char *read_host_led_state(void) {
+    uint8_t leds = host_keyboard_leds();
+    snprintf(host_led_state_str, sizeof(host_led_state_str), "%s %s %s",
+             (leds & (1 << USB_LED_CAPS_LOCK))   ? "CAPS" : "    ",
+             (leds & (1 << USB_LED_NUM_LOCK))    ? "NUML" : "    ",
+             (leds & (1 << USB_LED_SCROLL_LOCK)) ? "SCRL" : "    ");
+    return host_led_state_str;
+}
+
+char hid_state_str[24];
+const char *read_hid_state(void) {
+#if defined IS_LEFT_HAND  &&  IS_LEFT_HAND == true
+  snprintf(hid_state_str, sizeof(hid_state_str), "Hid: %s %s",
+           (get_usb_enabled()) ? "USB" : "   ",
+           (get_ble_enabled()) ? "BLE" : "   ");
+#endif
+  return hid_state_str;
+}
+
+char bat_state_str[24];
+void set_bat_state(void) {
+  snprintf(bat_state_str, sizeof(bat_state_str), "Batt: %4dmV",
+           get_vcc());
+}
+const char *read_bat_state(void) {
+  return bat_state_str;
+}
+
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   char str[16];
 
   //NRF_LOG_INFO("process_record_user, keycode: %d\n", keycode);
-
 #ifdef SSD1306OLED
   iota_gfx_flush(); // wake up screen
 #endif
 
   if (record->event.pressed) {
+    set_bat_state();
     set_keylog(keycode, record);
-    //set_timelog();
   }
 
-
   switch (keycode) {
-    case QWERTY:
-      if (record->event.pressed) {
-        persistent_default_layer_set(1UL<<_QWERTY);
-      }
-      return false;
-      break;
     case LOWER:
       if (record->event.pressed) {
-          //not sure how to have keyboard check mode and set it to a variable, so my work around
-          //uses another variable that would be set to true after the first time a reactive key is pressed.
-        if (TOG_STATUS) { //TOG_STATUS checks is another reactive key currently pressed, only changes RGB mode if returns false
-        } else {
-          TOG_STATUS = !TOG_STATUS;
-          #ifdef RGBLIGHT_ENABLE
-            //rgblight_mode(16);
-          #endif
-        }
         layer_on(_LOWER);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
       } else {
-        #ifdef RGBLIGHT_ENABLE
-          //rgblight_mode(RGB_current_mode);   // revert RGB to initial mode prior to RGB mode change
-        #endif
-        TOG_STATUS = false;
         layer_off(_LOWER);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
       }
@@ -200,27 +190,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       break;
     case RAISE:
       if (record->event.pressed) {
-        //not sure how to have keyboard check mode and set it to a variable, so my work around
-        //uses another variable that would be set to true after the first time a reactive key is pressed.
-        if (TOG_STATUS) { //TOG_STATUS checks is another reactive key currently pressed, only changes RGB mode if returns false
-        } else {
-          TOG_STATUS = !TOG_STATUS;
-          #ifdef RGBLIGHT_ENABLE
-            //rgblight_mode(15);
-          #endif
-        }
         layer_on(_RAISE);
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
       } else {
-        #ifdef RGBLIGHT_ENABLE
-          //rgblight_mode(RGB_current_mode);  // revert RGB to initial mode prior to RGB mode change
-        #endif
         layer_off(_RAISE);
-        TOG_STATUS = false;
         update_tri_layer_RGB(_LOWER, _RAISE, _ADJUST);
       }
       return false;
-      break;
     case ADJUST:
         if (record->event.pressed) {
           layer_on(_ADJUST);
@@ -228,29 +204,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
           layer_off(_ADJUST);
         }
         return false;
-        break;
-      //led operations - RGB mode change now updates the RGB_current_mode to allow the right RGB mode to be set after reactive keys are released
-    case RGB_MOD:
-      #ifdef RGBLIGHT_ENABLE
-        if (record->event.pressed) {
-          rgblight_mode(RGB_current_mode);
-          rgblight_step();
-          RGB_current_mode = rgblight_config.mode;
-          NRF_LOG_INFO("RGB_MOD, RGB_current_mode: %d\n", RGB_current_mode);
-        }
-      #endif
-      return false;
-      break;
-    case RGBRST:
-      #ifdef RGBLIGHT_ENABLE
-        if (record->event.pressed) {
-          eeconfig_update_rgblight_default();
-          rgblight_enable();
-          RGB_current_mode = rgblight_config.mode;
-          NRF_LOG_INFO("RGBRST, RGB_current_mode: %d\n", RGB_current_mode);
-        }
-      #endif
-      break;
   }
   if (record->event.pressed) {
     switch (keycode) {
@@ -321,7 +274,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   }
   return true;
 }
-;
 
 
 #ifdef SSD1306OLED
@@ -337,11 +289,12 @@ void matrix_update(struct CharacterMatrix *dest,
 void matrix_render_user(struct CharacterMatrix *matrix) {
   if (is_master) {
     matrix_write_ln(matrix, read_layer_state());
-    matrix_write_ln(matrix, read_keylog());
-    matrix_write_ln(matrix, read_keylogs());
-    //matrix_write_ln(matrix, read_mode_icon(keymap_config.swap_lalt_lgui));
+    matrix_write_ln(matrix, read_bat_state());
+    matrix_write_ln(matrix, read_hid_state());
     //matrix_write_ln(matrix, read_host_led_state());
-    //matrix_write_ln(matrix, read_timelog());
+    matrix_write(matrix, read_keylog());
+    //matrix_write_ln(matrix, read_keylogs());
+    //matrix_write_ln(matrix, read_mode_icon(keymap_config.swap_lalt_lgui));
   } else {
     matrix_write_ln(matrix, read_layer_state()); // somehow removes the dead pixel
     matrix_write(matrix, read_logo());
