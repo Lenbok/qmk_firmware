@@ -90,6 +90,8 @@ void matrix_init_kb() {
   #endif
 
   matrix_init_user();
+
+  nrf_gpio_pin_clear(LED_PIN);
 }
 
 void matrix_scan_kb(void) {
