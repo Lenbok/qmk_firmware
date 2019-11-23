@@ -69,8 +69,8 @@ enum custom_keycodes {
 #define ___UPPER_L2___   _______, _______, _______, _______, _______, _______
 #define ___UPPER_L3___   _______, _______, _______, _______, _______, _______
 #define ___UPPER_R1___                                                         KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, _______
-#define ___UPPER_R2___                                                         KC_MINS, KC_EQL , KC_LCBR, KC_RCBR, KC_PIPE, _______
-#define ___UPPER_R3___                                                         KC_UNDS, KC_PLUS, KC_LBRC, KC_RBRC, KC_BSLS, _______
+#define ___UPPER_R2___                                                         KC_MINS, KC_PLUS, KC_LCBR, KC_RCBR, KC_PIPE, _______
+#define ___UPPER_R3___                                                         KC_UNDS, KC_EQL , KC_LBRC, KC_RBRC, KC_BSLS, _______
 
 #define ___ADJUST_L1___    RESET,  RGBRST, EEP_RST,    VRSN,    MAKE, RGBISET
 #define ___ADJUST_L2___  KC_CAPS, RGB_HUI, RGB_SAI, RGB_VAI, RGB_SPI, RGB_MOD
