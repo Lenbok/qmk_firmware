@@ -4,9 +4,6 @@
   #include "lufa.h"
   #include "split_util.h"
 #endif
-#ifdef SSD1306OLED
-  #include "ssd1306.h"
-#endif
 #include "lenbok.h"
 
 extern keymap_config_t keymap_config;
@@ -15,6 +12,9 @@ extern keymap_config_t keymap_config;
 extern rgb_config_t rgb_matrix_config;
 #elif defined(RGBLIGHT_ENABLE)
 extern rgblight_config_t rgblight_config;
+#endif
+#if defined(RGB_IDLE)
+extern uint8_t rgb_idle_mode;
 #endif
 
 extern uint8_t is_master;
@@ -76,123 +76,133 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 };
 
 
-void matrix_init_user(void) {
-    //SSD1306 OLED init, make sure to add #define SSD1306OLED in config.h
-#ifdef SSD1306OLED
-    iota_gfx_init(!has_usb());   // turns on the display
-#endif
-}
-
-//SSD1306 OLED update loop, make sure to add #define SSD1306OLED in config.h
-#ifdef SSD1306OLED
-
-// When add source files to SRC in rules.mk, you can use functions.
-const char *read_logo(void);
-void set_keylog(uint16_t keycode, keyrecord_t *record);
-const char *read_keylog(void);
-const char *read_keylogs(void);
-
-char layer_state_str[24];
-const char* read_layer_state(void) {
-    switch (biton32(layer_state)) {
-    case _QWERTY:
-        snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Qwerty ");
-        break;
-    case _RAISE:
-        snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Raise  ");
-        break;
-    case _LOWER:
-        snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Lower  ");
-        break;
-    case _ADJUST:
-        snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Adjust ");
-        break;
-    default:
-        snprintf(layer_state_str, sizeof(layer_state_str), "Layer: Undef-%ld", layer_state);
-        break;
-    }
-    return layer_state_str;
-}
-
-char host_led_state_str[24];
-const char *read_host_led_state(void) {
-    uint8_t leds = host_keyboard_leds();
-    snprintf(host_led_state_str, sizeof(host_led_state_str), "%s %s %s",
-             (leds & (1 << USB_LED_CAPS_LOCK))   ? "CAPS" : "    ",
-             (leds & (1 << USB_LED_NUM_LOCK))    ? "NUML" : "    ",
-             (leds & (1 << USB_LED_SCROLL_LOCK)) ? "SCRL" : "    ");
-
-    return host_led_state_str;
-}
-
-#if defined(RGBLIGHT_ENABLE)
-char rgbl_info_str[24];
-const char *read_rgblight_info(void) {
-    snprintf(rgbl_info_str, sizeof(rgbl_info_str), "RGBl: %s  %2d  %2d",
-             rgblight_config.enable ? "On" : "- ",
-             rgblight_config.mode,
-             rgb_idle_mode
-             );
-    return rgbl_info_str;
-}
-#elif defined(RGB_MATRIX_ENABLE)
-char rgbm_info_str[24];
-const char *read_rgb_matrix_info(void) {
-    uint8_t mode = rgb_matrix_get_mode();
-    snprintf(rgbm_info_str, sizeof(rgbm_info_str), "RGBm: %s  %2d  %2d",
-             rgb_matrix_config.enable ? "On" : "- ",
-             mode,
-             rgb_idle_mode
-             );
-    return rgbm_info_str;
-}
-#endif
-
-void matrix_scan_keymap(void) {
-    iota_gfx_task();
-}
-
-void matrix_render_user(struct CharacterMatrix *matrix) {
+#ifdef OLED_DRIVER_ENABLE
+oled_rotation_t oled_init_user(oled_rotation_t rotation) {
     if (is_master) {
-        // If you want to change the display of OLED, you need to change here
-        // Note: the fourth row should use matrix_write, not matrix_write_ln, to prevent wrap
-        matrix_write_ln(matrix, read_layer_state());
-        matrix_write_ln(matrix, read_host_led_state());
-#if defined(RGBLIGHT_ENABLE)
-        matrix_write_ln(matrix, read_rgblight_info());
-#elif defined(RGB_MATRIX_ENABLE)
-        matrix_write_ln(matrix, read_rgb_matrix_info());
-#endif
-        matrix_write(matrix, read_keylog());
-        //matrix_write_ln(matrix, read_keylogs());
-        //matrix_write_ln(matrix, read_mode_icon(keymap_config.swap_lalt_lgui));
-        //matrix_write_ln(matrix, read_timelog());
+        return OLED_ROTATION_270;
     } else {
-        matrix_write(matrix, read_logo());
+        return rotation;
     }
 }
 
-void matrix_update(struct CharacterMatrix *dest, const struct CharacterMatrix *source) {
-    if (memcmp(dest->display, source->display, sizeof(dest->display))) {
-        memcpy(dest->display, source->display, sizeof(dest->display));
-        dest->dirty = true;
-    }
+void render_logo(void) {
+    static const char PROGMEM crkbd_logo[] = {
+        0x80, 0x81, 0x82, 0x83, 0x84, 0x85, 0x86, 0x87, 0x88, 0x89, 0x8a, 0x8b, 0x8c, 0x8d, 0x8e, 0x8f, 0x90, 0x91, 0x92, 0x93, 0x94,
+        0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf, 0xb0, 0xb1, 0xb2, 0xb3, 0xb4,
+        0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce, 0xcf, 0xd0, 0xd1, 0xd2, 0xd3, 0xd4,
+        0};
+    oled_write_P(crkbd_logo, false);
 }
 
-void iota_gfx_task_user(void) {
-    struct CharacterMatrix matrix;
-    matrix_clear(&matrix);
-    matrix_render_user(&matrix);
-    matrix_update(&display, &matrix);
+char keylog_str_pos[6] = {};
+char keylog_str_code[6] = {};
+uint16_t log_timer = 0;
+const char code_to_name[60] = {
+    ' ', ' ', ' ', ' ', 'a', 'b', 'c', 'd', 'e', 'f',
+    'g', 'h', 'i', 'j', 'k', 'l', 'm', 'n', 'o', 'p',
+    'q', 'r', 's', 't', 'u', 'v', 'w', 'x', 'y', 'z',
+    '1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
+    'R', 'E', 'B', 'T', ' ', ' ', ' ', ' ', ' ', ' ',
+    ' ', ';', '\'', ' ', ',', '.', '/', ' ', ' ', ' '};
+void set_keylog(uint16_t keycode, keyrecord_t *record) {
+  char name = ' ';
+  if (keycode < 60) {
+    name = code_to_name[keycode];
+  }
+  snprintf(keylog_str_pos, sizeof(keylog_str_pos), "%dx%d",
+           record->event.key.row, record->event.key.col);
+  snprintf(keylog_str_code, sizeof(keylog_str_code), "%2d %c",
+           keycode, name);
 }
-#endif//SSD1306OLED
+
+
+#if defined(RGBLIGHT_ENABLE) || defined(RGB_MATRIX_ENABLE)
+char rgb_info_str[6];
+void render_rgb_info(void) {
+#if defined(RGBLIGHT_ENABLE)
+    bool enabled = rgblight_config.enable;
+    uint8_t mode = rgblight_config.mode;
+    oled_write_P(PSTR("RGBl:"), false);
+#elif defined(RGB_MATRIX_ENABLE)
+    bool enabled = rgb_matrix_config.enable;
+    uint8_t mode = rgb_matrix_get_mode();
+    oled_write_P(PSTR("RGBm:"), false);
+#endif
+    if (enabled) {
+        snprintf(rgb_info_str, sizeof(rgb_info_str), "On %2d", mode);
+    } else {
+        snprintf(rgb_info_str, sizeof(rgb_info_str), "   %2d", mode);
+    }
+    oled_write(rgb_info_str, false);
+#if defined(RGB_IDLE)
+    snprintf(rgb_info_str, sizeof(rgb_info_str), "Id %2d", rgb_idle_mode);
+    oled_write_ln(rgb_info_str, false);
+#endif
+}
+#endif
+
+// If cond is true, render data (possibly inverted), else clear the line
+void render_line_P(bool cond, const char* data, bool invert) {
+    if (cond) {
+        oled_write_P(data, invert);
+    } else {
+        oled_advance_page(true);
+    }
+}
+void render_status(void) {
+    switch (biton32(layer_state)) {
+        case 0:
+            oled_advance_page(true);
+            break;
+        case _RAISE:
+            oled_write_P(PSTR("Raise"), false);
+            break;
+        case _LOWER:
+            oled_write_P(PSTR("Lower"), false);
+            break;
+        case _ADJUST:
+            oled_write_P(PSTR("Adjst"), false);
+            break;
+        default:
+            oled_write_P(PSTR("Unkn "), false);
+            break;
+    }
+
+    uint8_t modifiers = get_mods();
+    uint8_t one_shot = get_oneshot_mods();
+    render_line_P(modifiers & MOD_MASK_SHIFT || one_shot & MOD_MASK_SHIFT, PSTR(" SFT "), false);
+    render_line_P(modifiers & MOD_MASK_CTRL  || one_shot & MOD_MASK_CTRL,  PSTR(" CTL "), false);
+    render_line_P(modifiers & MOD_MASK_ALT   || one_shot & MOD_MASK_ALT,   PSTR(" ALT "), false);
+    render_line_P(modifiers & MOD_MASK_GUI   || one_shot & MOD_MASK_GUI,   PSTR(" GUI "), false);
+
+    uint8_t led_usb_state = host_keyboard_leds();
+    render_line_P(led_usb_state & (1<<USB_LED_NUM_LOCK),    PSTR(" NUM "), true);
+    render_line_P(led_usb_state & (1<<USB_LED_CAPS_LOCK),   PSTR(" CAPS"), true);
+    render_line_P(led_usb_state & (1<<USB_LED_SCROLL_LOCK), PSTR(" SCRL"), true);
+
+#if defined(RGBLIGHT_ENABLE) || defined(RGB_MATRIX_ENABLE)
+    render_rgb_info();
+#endif
+
+    oled_write_ln(keylog_str_pos, false);
+    oled_write(keylog_str_code, false);
+}
+
+void oled_task_user(void) {
+    if (is_master) {
+        render_status();     // Renders the current keyboard state (layer, lock, caps, scroll, etc)
+    } else {
+        render_logo();
+        //oled_scroll_left();  // Turns on scrolling
+    }
+}
+#endif//OLED
 
 bool process_record_keymap(uint16_t keycode, keyrecord_t *record) {
     if (record->event.pressed) {
-#ifdef SSD1306OLED
+#ifdef OLED_DRIVER_ENABLE
         set_keylog(keycode, record);
 #endif
-        // set_timelog();
     }
     return true;
 }
