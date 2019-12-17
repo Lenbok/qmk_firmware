@@ -18,18 +18,18 @@ enum user_layers {
 
 enum custom_keycodes {
     AD_WO_L = SAFE_RANGE, /* Start advertising without whitelist  */
+    BLE_TOG,              /* Toggle BLE HID sending               */
     BLE_DIS,              /* Disable BLE HID sending              */
     BLE_EN,               /* Enable BLE HID sending               */
+    USB_TOG,              /* Toggle USB HID sending               */
     USB_DIS,              /* Disable USB HID sending              */
     USB_EN,               /* Enable USB HID sending               */
     DELBNDS,              /* Delete all bonding                   */
-    ADV_ID0,              /* Start advertising to PeerID 0        */
     ADV_ID1,              /* Start advertising to PeerID 1        */
     ADV_ID2,              /* Start advertising to PeerID 2        */
     ADV_ID3,              /* Start advertising to PeerID 3        */
     ADV_ID4,              /* Start advertising to PeerID 4        */
     BATT_LV,              /* Display battery level in milli volts */
-    DEL_ID0,              /* Delete bonding of PeerID 0           */
     DEL_ID1,              /* Delete bonding of PeerID 1           */
     DEL_ID2,              /* Delete bonding of PeerID 2           */
     DEL_ID3,              /* Delete bonding of PeerID 3           */
@@ -58,9 +58,20 @@ extern keymap_config_t keymap_config;
 #define KC_BATT  BATT_LV
 #define KC_UEN   USB_EN
 #define KC_UDIS  USB_DIS
-#define KC_BADV  AD_WO_L
+#define KC_UTOG  USB_TOG
 #define KC_BEN   BLE_EN
 #define KC_BDIS  BLE_DIS
+#define KC_BTOG  BLE_TOG
+#define KC_A_ALL AD_WO_L
+#define KC_D_ALL DELBNDS
+#define KC_A_ID1 ADV_ID1
+#define KC_A_ID2 ADV_ID2
+#define KC_A_ID3 ADV_ID3
+#define KC_A_ID4 ADV_ID4
+#define KC_D_ID1 DEL_ID1
+#define KC_D_ID2 DEL_ID2
+#define KC_D_ID3 DEL_ID3
+#define KC_D_ID4 DEL_ID4
 #define KC_GUGR  LGUI_T(KC_GRV)
 #define KC_GUES  LGUI_T(KC_ESC)
 #define KC_CTLTB CTL_T(KC_TAB)
@@ -107,11 +118,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 
   [_ADJUST] = LAYOUT_kc( \
   //,-----------------------------------------.                ,-----------------------------------------.
-        RST,   DFU,  BADV, XXXXX, XXXXX,  BATT,                   MUTE, XXXXX, XXXXX, XXXXX, XXXXX,   INS,\
+        RST, D_ID1, D_ID2, D_ID3, D_ID4, D_ALL,                   MUTE, XXXXX, XXXXX, XXXXX, XXXXX,   INS,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       CAPS,   UEN,   BEN, XXXXX, XXXXX, XXXXX,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
+       CAPS, A_ID1, A_ID2, A_ID3, A_ID4, A_ALL,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
   //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       TRNS,  UDIS,  BDIS, XXXXX, XXXXX, XXXXX,                   MPRV,  VOLD,  VOLU,  MNXT,  MPLY,  TRNS,\
+       TRNS,  UTOG,  BTOG, XXXXX, XXXXX, XXXXX,                   MPRV,  VOLD,  VOLU,  MNXT,  MPLY,  TRNS,\
   //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
                                    LALT, SPC,  LOWER,     RAISE,  ENT,  RCTL \
                               //`--------------------'  `--------------------'
@@ -167,7 +178,7 @@ const char *read_bat_state(void) {
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   char str[16];
 
-  //NRF_LOG_INFO("process_record_user, keycode: %d\n", keycode);
+  //NRF_LOG_INFO("process_record_user, keycode: %d, pressed: %s", keycode, record->event.pressed ? "true" : "false");
 #ifdef SSD1306OLED
   iota_gfx_flush(); // wake up screen
 #endif
@@ -213,25 +224,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case AD_WO_L:
       restart_advertising_wo_whitelist();
       return false;
-    case USB_EN:
-      set_usb_enabled(true);
-      return false;
-      break;
-    case USB_DIS:
-      set_usb_enabled(false);
-      return false;
-      break;
-    case BLE_EN:
-      set_ble_enabled(true);
-      return false;
-      break;
-    case BLE_DIS:
-      set_ble_enabled(false);
-      return false;
-      break;
-    case ADV_ID0:
-      restart_advertising_id(0);
-      return false;
     case ADV_ID1:
       restart_advertising_id(1);
       return false;
@@ -244,9 +236,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case ADV_ID4:
       restart_advertising_id(4);
       return false;
-    case DEL_ID0:
-      delete_bond_id(0);
-      return false;
     case DEL_ID1:
       delete_bond_id(1);
       return false;
@@ -255,6 +244,20 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       return false;
     case DEL_ID3:
       delete_bond_id(3);
+      return false;
+    case BLE_TOG:
+      set_ble_enabled(!get_ble_enabled());
+      return false;
+    case USB_TOG:
+      set_usb_enabled(!get_usb_enabled());
+      return false;
+    case BLE_EN:
+      set_ble_enabled(true);
+      set_usb_enabled(false);
+      return false;
+    case USB_EN:
+      set_ble_enabled(false);
+      set_usb_enabled(true);
       return false;
     case BATT_LV:
       sprintf(str, "%4dmV", get_vcc());
