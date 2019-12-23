@@ -1,5 +1,6 @@
 #include QMK_KEYBOARD_H
 #include "app_ble_func.h"
+#include "matrix.h"
 
 #ifdef SSD1306OLED
   #include "ssd1306.h"
@@ -165,15 +166,43 @@ const char *read_hid_state(void) {
   return hid_state_str;
 }
 
+
+//#define BATTERY_PCT
+
+#ifdef BATTERY_PCT
+#define MAX_BATT_MV 3300
+#define MIN_BATT_MV 2000
+#define BATT_RANGE (MAX_BATT_MV-MIN_BATT_MV)
+#define batt_pct(x) (100*((x)-MIN_BATT_MV)/BATT_RANGE)
+#endif
+
 char bat_state_str[24];
 void set_bat_state(void) {
-  snprintf(bat_state_str, sizeof(bat_state_str), "Batt: %4dmV",
-           get_vcc());
+#ifdef BATTERY_PCT
+  uint16_t curr = get_vcc();
+  curr = curr < MAX_BATT_MV ? curr : MAX_BATT_MV;
+  curr = curr > MIN_BATT_MV ? curr : MIN_BATT_MV;
+  curr = batt_pct(curr);
+  snprintf(bat_state_str, sizeof(bat_state_str), "Batt: %3d%%", curr);
+#else
+  snprintf(bat_state_str, sizeof(bat_state_str), "Batt: %3dmV", get_vcc());
+#endif
 }
 const char *read_bat_state(void) {
   return bat_state_str;
 }
 
+
+void matrix_scan_user(void) {
+  if (!is_master && matrix_is_modified()) {
+    // Update slave side battery just when it is in use
+    // (slave side doesn't see process_record_user)
+    set_bat_state();
+#ifdef SSD1306OLED
+    iota_gfx_flush(); // wake up screen
+#endif
+  }
+}
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   char str[16];
@@ -299,8 +328,9 @@ void matrix_render_user(struct CharacterMatrix *matrix) {
     //matrix_write_ln(matrix, read_keylogs());
     //matrix_write_ln(matrix, read_mode_icon(keymap_config.swap_lalt_lgui));
   } else {
-    matrix_write_ln(matrix, read_layer_state()); // somehow removes the dead pixel
-    matrix_write(matrix, read_logo());
+    matrix_write_ln(matrix, read_bat_state());
+  /*   matrix_write_ln(matrix, read_layer_state()); // somehow removes the dead pixel */
+  /*   matrix_write(matrix, read_logo()); */
   }
 }
 
