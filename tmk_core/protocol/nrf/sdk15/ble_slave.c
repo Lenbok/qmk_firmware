@@ -66,7 +66,8 @@
 #include "nrf_log_default_backends.h"
 
 #include "matrix.h"
-#include "ble_slave.h"
+//#include "ble_slave.h"
+#include "adc.h"
 #include "ble_common.h"
 
 #define APP_FEATURE_NOT_SUPPORTED       BLE_GATT_STATUS_ATTERR_APP_BEGIN + 2        /**< Reply when unsupported features are requested. */
@@ -81,6 +82,11 @@
 #define APP_ADV_INTERVAL                64                                          /**< The advertising interval (in units of 0.625 ms. This value corresponds to 40 ms). */
 
 #define APP_ADV_DURATION                18000                                       /**< The advertising duration (180 seconds) in units of 10 milliseconds. */
+
+#define BATTERY_LEVEL_MEAS_INTERVAL         APP_TIMER_TICKS(2000)                      /**< Battery level measurement interval (ticks). */
+#define MIN_BATTERY_LEVEL                   81                                         /**< Minimum simulated battery level. */
+#define MAX_BATTERY_LEVEL                   100                                        /**< Maximum simulated battery level. */
+#define BATTERY_LEVEL_INCREMENT             1                                          /**< Increment between each simulated battery level measurement. */
 
 #ifndef BLE_NUS_MIN_INTERVAL
   #define BLE_NUS_MIN_INTERVAL 20
@@ -142,6 +148,7 @@ NRF_BLE_GATT_DEF(m_gatt);                                                       
 NRF_BLE_QWR_DEF(m_qwr);                                                             /**< Context for the Queued Write module.*/
 BLE_ADVERTISING_DEF(m_advertising);                                                 /**< Advertising module instance. */
 APP_TIMER_DEF( main_task_timer_id);
+APP_TIMER_DEF( m_battery_timer_id); /**< Battery timer. */
 
 /**@brief Function for assert macro callback.
  *
@@ -787,12 +794,36 @@ uint32_t ble_nus_send_bytes(uint8_t* buf, uint16_t len) {
   return err_code;
 }
 
+/**@brief Function for performing a battery measurement, and update the Battery Level characteristic in the Battery Service.
+ */
+static void battery_level_update(void) {
+  adc_start();
+}
+
+/**@brief Function for handling the Battery measurement timer timeout.
+ *
+ * @details This function will be called each time the battery level measurement timer expires.
+ *
+ * @param[in]   p_context   Pointer used for passing some arbitrary information (context) from the
+ *                          app_start_timer() call to the timeout handler.
+ */
+static void battery_level_meas_timeout_handler(void * p_context) {
+  UNUSED_PARAMETER(p_context);
+  battery_level_update();
+}
+
 void timers_init(void (*main_task)(void*)) {
   ret_code_t err_code = app_timer_init();
   APP_ERROR_CHECK(err_code);
-  APP_ERROR_CHECK(
-      app_timer_create(&main_task_timer_id, APP_TIMER_MODE_REPEATED,
-          main_task));
+
+  // Create battery timer.
+  err_code = app_timer_create(&m_battery_timer_id, APP_TIMER_MODE_REPEATED,
+      battery_level_meas_timeout_handler);
+  APP_ERROR_CHECK(err_code);
+
+  err_code = app_timer_create(&main_task_timer_id, APP_TIMER_MODE_REPEATED,
+      main_task);
+  APP_ERROR_CHECK(err_code);
 }
 
 void ble_disconnect() {
@@ -806,7 +837,17 @@ void ble_disconnect() {
   }
 }
 
-void advertising_start(void) {
+/**@brief Function for starting timers.
+ */
+void timers_start(void) {
+  ret_code_t err_code;
+
+  err_code = app_timer_start(m_battery_timer_id, BATTERY_LEVEL_MEAS_INTERVAL,
+      NULL);
+  APP_ERROR_CHECK(err_code);
+}
+
+void advertising_start() {
   ret_code_t ret;
 
   memset(m_whitelist_peers, PM_PEER_ID_INVALID, sizeof(m_whitelist_peers));

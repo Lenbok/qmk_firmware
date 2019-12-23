@@ -52,6 +52,8 @@ int main(void) {
 
   usbd_init();
 
+  adc_init();
+
   ble_stack_init();
   sd_power_dcdc_mode_set(NRF_POWER_DCDC_ENABLE);
   services_init();
@@ -66,6 +68,7 @@ int main(void) {
   init_printf(NULL, sendchar_pf);
   keyboard_init();
   advertising_start();
+  timers_start();
   main_task_start(MAINTASK_INTERVAL);
   usbd_enable();
   // Enter main loop.
