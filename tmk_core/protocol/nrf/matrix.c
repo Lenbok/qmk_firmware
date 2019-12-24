@@ -421,6 +421,15 @@ uint8_t matrix_scan(void)
   return res;
 }
 
+bool matrix_is_modified(void)
+{
+#ifdef NRF_SEPARATE_KEYBOARD_SLAVE
+    return send_flag;
+#else
+    return false;
+#endif
+}
+
 inline
 bool matrix_is_on(uint8_t row, uint8_t col)
 {
