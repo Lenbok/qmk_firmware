@@ -192,6 +192,11 @@ const char *read_bat_state(void) {
   return bat_state_str;
 }
 
+void matrix_init_user(void) {
+  // Default to USB
+  set_ble_enabled(false);
+  set_usb_enabled(true);
+}
 
 void matrix_scan_user(void) {
   if (!is_master && matrix_is_modified()) {
