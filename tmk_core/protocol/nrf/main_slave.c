@@ -117,13 +117,15 @@ __WEAK void app_error_fault_handler(uint32_t id, uint32_t pc, uint32_t info)
 #endif // DEBUG
 }
 
+#ifdef RGBLIGHT_ENABLE
 extern void rgblight_update_sync(rgblight_syncinfo_t *syncinfo, bool write_to_eeprom);
-
+#endif
 
 uint32_t ble_nus_recv_bytes(uint8_t* buf, uint16_t len) {
+#if defined(RGBLIGHT_ENABLE) && defined(RGBLIGHT_ANIMATIONS)
   if (len == sizeof(rgblight_syncinfo_t)) {
     rgblight_update_sync((rgblight_syncinfo_t*)buf, true);
   }
+#endif
   return 0;
 }
-
