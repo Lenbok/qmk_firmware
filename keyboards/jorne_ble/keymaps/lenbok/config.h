@@ -24,3 +24,5 @@
 //#define IGNORE_MOD_TAP_INTERRUPT
 #define TAPPING_FORCE_HOLD
 #define DISABLE_SPACE_CADET_ROLLOVER
+
+//#define NRFMICRO_AIN2_BAT // nRFMicro 1.0 // joric

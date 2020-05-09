@@ -45,22 +45,25 @@ void adc_init() {
   nrf_drv_saadc_init(&adccfg, adc_event_handler);
 }
 
+#ifdef  NRFMICRO_AIN2_BAT // nRFMicro 1.0 // joric
+  #define NRF_BAT_ADC_PIN NRF_SAADC_INPUT_AIN2
+  // NB! joric
+  // we're using pin AIN2 with 10K/13K pulldown so we have to adjust the voltage a little bit
+  // charged shows 2456mV so we scale that up to 4200mV
+  // 2.37V (at 4.2V) to 1.36 (at 2.4V).
+  #define NRF_BAT_MULT 4200 / 2456
+#else
+  #define NRF_BAT_ADC_PIN NRF_SAADC_INPUT_VDD
+  #define NRF_BAT_MULT 1
+#endif
+
 void adc_start() {
-  //nrf_saadc_channel_config_t pincfg = NRF_DRV_SAADC_DEFAULT_CHANNEL_CONFIG_SE(NRF_SAADC_INPUT_VDD);
-  nrf_saadc_channel_config_t pincfg = NRF_DRV_SAADC_DEFAULT_CHANNEL_CONFIG_SE(NRF_SAADC_INPUT_AIN2); // nRFMicro 1.0 // joric
+  nrf_saadc_channel_config_t pincfg = NRF_DRV_SAADC_DEFAULT_CHANNEL_CONFIG_SE(NRF_BAT_ADC_PIN);
   nrf_drv_saadc_channel_init(0, &pincfg);
   nrf_drv_saadc_buffer_convert(adc_buffer, 1);
   nrf_drv_saadc_sample();
 }
 
 uint16_t get_vcc() {
-  // NB! joric
-  // we're using pin AIN2 with 10K/13K pulldown so we have to adjust the voltage a little bit
-  // charged shows 2456mV so we scale that up to 4200mV
-  // 2.37V (at 4.2V) to 1.36 (at 2.4V).
-  return ((uint32_t)adc_buffer[0]*6*600/255) * 4200 / 2456;
+  return ((uint32_t)adc_buffer[0]*6*600/255) * NRF_BAT_MULT;
 }
-
-
-
-
