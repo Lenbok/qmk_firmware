@@ -66,7 +66,7 @@
 #include "nrf_log_default_backends.h"
 
 #include "matrix.h"
-//#include "ble_slave.h"
+#include "ble_slave.h"
 #include "adc.h"
 #include "ble_common.h"
 
@@ -401,6 +401,12 @@ void peer_manager_init() {
  */
 /**@snippet [Handling the data received over BLE] */
 static void nus_data_handler(ble_nus_evt_t * p_evt) {
+  // joric below this line
+  if (p_evt->type == BLE_NUS_EVT_RX_DATA)
+  {
+      ble_nus_recv_bytes((uint8_t*)p_evt->params.rx_data.p_data, (uint16_t)p_evt->params.rx_data.length);
+  }
+
 }
 /**@snippet [Handling the data received over BLE] */
 
@@ -796,7 +802,7 @@ uint32_t ble_nus_send_bytes(uint8_t* buf, uint16_t len) {
 
 /**@brief Function for performing a battery measurement, and update the Battery Level characteristic in the Battery Service.
  */
-static void battery_level_update(void) {
+void battery_level_update(void) {
   adc_start();
 }
 
@@ -811,6 +817,7 @@ static void battery_level_meas_timeout_handler(void * p_context) {
   UNUSED_PARAMETER(p_context);
   battery_level_update();
 }
+
 
 void timers_init(void (*main_task)(void*)) {
   ret_code_t err_code = app_timer_init();
@@ -846,6 +853,11 @@ void timers_start(void) {
       NULL);
   APP_ERROR_CHECK(err_code);
 }
+
+bool ble_connected(void) {
+  return m_conn_handle != BLE_CONN_HANDLE_INVALID;
+}
+
 
 void advertising_start() {
   ret_code_t ret;

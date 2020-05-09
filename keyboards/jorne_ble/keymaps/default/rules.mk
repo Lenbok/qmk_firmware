@@ -76,6 +76,9 @@ SRC +=  ../../lib/glcdfont.c \
         ../../lib/layer_state_reader.c \
         ../../lib/logo_reader.c \
         ../../lib/keylogger.c \
-        # ./lib/mode_icon_reader.c \
-        # ./lib/host_led_state_reader.c \
+        ../../lib/mode_icon_reader.c \
+        ../../lib/host_led_state_reader.c \
         ../../lib/timelogger.c \
+
+# enables eeprom for rgblight.c (it checks for || defined(EEPROM_SIZE))
+OPT_DEFS += -DEEPROM_SIZE=36

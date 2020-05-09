@@ -17,6 +17,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "matrix.h"
 #include "rgblight.h"
+#undef PACKED
 #include "nrf.h"
 #include "app_ble_func.h"
 #include "wait.h"
@@ -34,29 +35,16 @@ extern rgblight_config_t rgblight_config;
 
 #include "nrf/i2c.h"
 
+void nrfmicro_init(void);
+void nrfmicro_update(void);
+
 void unselect_rows(void);
 void select_row(uint8_t row);
 matrix_row_t read_cols(void);
 static bool bootloader_flag = false;
 
 void matrix_init_kb() {
-//  rgblight_mode_noeeprom(35);
-  set_usb_enabled(true);
-
-  // blink on power on
-  nrf_gpio_cfg_output(LED_PIN);
-  nrf_gpio_cfg_input(SWITCH_PIN, NRF_GPIO_PIN_PULLDOWN);
-
-  for (int i = 0; i < 3; i++) {
-    nrf_gpio_pin_set(LED_PIN);
-    nrf_delay_ms(100);
-
-    nrf_gpio_pin_clear(LED_PIN);
-    nrf_delay_ms(100);
-  }
-
-  nrf_gpio_pin_set(LED_PIN);
-
+  nrfmicro_init();
 
   select_row(3);
   wait_us(50);
@@ -76,13 +64,6 @@ void matrix_init_kb() {
     bootloader_flag = true;
   }
 
-#ifdef RGBLIGHT_ENABLE
-  // turn on RGB leds by default, debug option *remove me*
-  // mode change doesnt work until you press bl reset (adjust+lrst)
-  eeconfig_update_rgblight_default();
-  rgblight_enable();
-#endif
-
   //SSD1306 OLED init, make sure to add #define SSD1306OLED in config.h
   #ifdef SSD1306OLED
       iota_gfx_init(!IS_LEFT_HAND);   // turns on the display
@@ -99,4 +80,5 @@ void matrix_scan_kb(void) {
   #endif
 
   matrix_scan_user();
+  nrfmicro_update();
 }

@@ -232,7 +232,7 @@ void advertising_start() {
 //  }
 }
 
-void ble_disconnect() {
+void ble_disconnect(void) {
   sd_ble_gap_adv_stop(m_advertising.adv_handle);
   if (m_conn_handle != BLE_CONN_HANDLE_INVALID) {
     ret_code_t err_code = sd_ble_gap_disconnect(m_conn_handle,
@@ -241,6 +241,10 @@ void ble_disconnect() {
       APP_ERROR_CHECK(err_code);
     }
   }
+}
+
+bool ble_connected(void) {
+  return m_conn_handle != BLE_CONN_HANDLE_INVALID;
 }
 
 
@@ -393,7 +397,13 @@ static void battery_level_update(void) {
   uint8_t battery_level;
 
   adc_start();
-  battery_level = get_vcc() / 30;
+  //battery_level = get_vcc() / 30;
+
+  // NB! joric. get_vcc is in mV, so we need to map 2.9V..4.2V into 0..100
+  int high = 4200, low = 2900;
+  int vcc = get_vcc();
+  battery_level = (vcc - low) * 100 / (high - low);
+  if (battery_level > 100) battery_level = 100;
 
   err_code = ble_bas_battery_level_update(&m_bas, battery_level,
       BLE_CONN_HANDLE_ALL);

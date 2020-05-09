@@ -5,6 +5,8 @@
   #include "ssd1306.h"
 #endif
 
+#include "eeprom.h"
+
 // define variables for reactive RGB
 bool TOG_STATUS = false;
 int RGB_current_mode;
@@ -15,14 +17,24 @@ extern rgblight_config_t rgblight_config;
 
 const uint8_t is_master = IS_LEFT_HAND;
 
+void nrfmicro_power_enable(bool enable);
+extern uint8_t nrfmicro_switch_pin(void);
+
+bool has_usb(void);
+
 // Each layer gets a name for readability, which is then used in the keymap matrix below.
 // The underscores don't mean anything - you can have a layer called STUFF or any other name.
 // Layer names don't all need to be of the same length, obviously, and you can also skip them
 // entirely and just use numbers.
-#define _QWERTY 0
-#define _LOWER 1
-#define _RAISE 2
-#define _ADJUST 3
+
+enum layer_number {
+  _QWERTY = 0,
+  _LOWER,
+  _RAISE,
+  _ADJUST,
+  _ISO,
+  _THUMB_ALT,
+};
 
 enum custom_keycodes {
     AD_WO_L = SAFE_RANGE, /* Start advertising without whitelist  */
@@ -51,7 +63,9 @@ enum custom_keycodes {
     BACKLIT,
     EISU,
     KANA,
-    RGBRST
+    RGBRST,
+    PLOVER,
+    EXT_PLV
 };
 
 
@@ -78,54 +92,86 @@ extern keymap_config_t keymap_config;
 #define KC_ALTKN ALT_T(KC_LANG1)
 
 
+#define LOWER MO(_LOWER)
+#define RAISE MO(_RAISE)
+
+#define TG_ISO  TG(_ISO)
+#define TG_THMB TG(_THUMB_ALT)
+
+#define RBR_RGU MT(MOD_RGUI, KC_RBRC)
+#define F12_RGU MT(MOD_RGUI, KC_F12)
+#define PLS_LCT MT(MOD_LCTL, KC_PPLS)
+#define EQL_LCT MT(MOD_LCTL, KC_PEQL)
+#define APP_LCT MT(MOD_LCTL, KC_APP)
+#define EQL_RCT MT(MOD_RCTL, KC_PEQL)
+#define QUO_RCT MT(MOD_RCTL, KC_QUOT)
+#define APP_RCT MT(MOD_RCTL, KC_APP)
+#define MIN_RCT MT(MOD_RCTL, KC_MINS)
+#define EQL_LAL MT(MOD_LALT, KC_EQL)
+#define BSL_RAL MT(MOD_RALT, KC_BSLS)
+
+#define NBS_LCT MT(MOD_LCTL, KC_NUBS)
+#define BSH_LAL MT(MOD_LALT, KC_BSLS)
+#define APP_RAL MT(MOD_RALT, KC_APP)
+
+#define BSP_LSH MT(MOD_LSFT, KC_BSPC)
+#define SPC_RSH MT(MOD_RSFT, KC_SPC)
+#define DEL_RSE LT(_RAISE, KC_DEL)
+#define TAB_RSE LT(_RAISE, KC_TAB)
+#define ENT_LWR LT(_LOWER, KC_ENT)
+#define ESC_LWR LT(_LOWER, KC_ESC)
+
+
+
+#define SH_TG KC_TRNS
+
+
+uint32_t layer_state_set_user(uint32_t state) {
+  return update_tri_layer_state(state, _LOWER, _RAISE, _ADJUST);
+}
+
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
-  [_QWERTY] = LAYOUT_kc( \
-  //,-----------------------------------------.                ,-----------------------------------------.
-        ESC,     Q,     W,     E,     R,     T,                      Y,     U,     I,     O,     P,  BSPC,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      CTLTB,     A,     S,     D,     F,     G,                      H,     J,     K,     L,  SCLN,  QUOT,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       LSFT,     Z,     X,     C,     V,     B,                      N,     M,  COMM,   DOT,  SLSH,  RSFT,\
-  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  LOWER, SPC,  RAISE,      LOWER, BSPC, RAISE \
-                              //`--------------------'  `--------------------'
-  ),
 
-  [_LOWER] = LAYOUT_kc( \
-  //,-----------------------------------------.                ,-----------------------------------------.
-        ESC,     1,     2,     3,     4,     5,                      6,     7,     8,     9,     0,  BSPC,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      CTLTB,    F1,    F2,    F3,    F4,    F5,                     F6,    F7,    F8,    F9,   F10, XXXXX,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       LSFT,   F11,   F12,   F13,   F14,   F15,                    F16,   F17,   F18,   F19,   F20, XXXXX,\
-  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  LOWER, SPC,  RAISE,      LOWER, BSPC, RAISE \
-                              //`--------------------'  `--------------------'
-  ),
+[_QWERTY] = LAYOUT(\
+  KC_LGUI, KC_GRV,  KC_Q,    KC_W,    KC_E,    KC_R,    KC_T,         KC_Y,    KC_U,    KC_I,    KC_O,    KC_P,    KC_LBRC, RGUI_T(KC_RBRC), \
+           KC_LCTL, KC_A,    KC_S,    KC_D,    KC_F,    KC_G,         KC_H,    KC_J,    KC_K,    KC_L,    KC_SCLN, RCTL_T(KC_QUOT), \
+           KC_LALT, KC_Z,    KC_X,    KC_C,    KC_V,    KC_B,         KC_N,    KC_M,    KC_COMM,    KC_DOT,     KC_SLSH, BSL_RAL, \
+                                      TAB_RSE, SPC_RSH, ENT_LWR,      ESC_LWR, BSP_LSH, DEL_RSE \
+),
 
-  [_RAISE] = LAYOUT_kc( \
-  //,-----------------------------------------.                ,-----------------------------------------.
-        ESC,  EXLM,    AT,  HASH,   DLR,  PERC,                   CIRC,  AMPR,  ASTR,  LPRN,  RPRN,  BSPC,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      CTLTB, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,                   MINS,   EQL,  LCBR,  RCBR,  PIPE,   GRV,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       LSFT, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,                   UNDS,  PLUS,  LBRC,  RBRC,  BSLS,  TILD,\
-  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  LOWER, SPC,  RAISE,      LOWER, BSPC, RAISE \
-                              //`--------------------'  `--------------------'
-  ),
+[_LOWER] = LAYOUT(\
+  _______, KC_UNDS, KC_F1,   KC_F2,   KC_F3,   KC_F4,   KC_F5,        KC_F6,   KC_F7,   KC_F8,   KC_F9,   KC_F10,  KC_F11,  F12_RGU, \
+           PLS_LCT, KC_EXLM, KC_AT,   KC_HASH, KC_DLR,  KC_PERC,      KC_CIRC, KC_AMPR, KC_ASTR, KC_LPRN, KC_RPRN, MIN_RCT, \
+           EQL_LAL, KC_1,    KC_2,    KC_3,    KC_4,    KC_5,         KC_6,    KC_7,    KC_8,    KC_9,    KC_0,    _______, \
+                                      _______, _______, _______,      _______, _______, _______\
+),
 
-  [_ADJUST] = LAYOUT_kc( \
-  //,-----------------------------------------.                ,-----------------------------------------.
-        RST,  LRST, XXXXX, XXXXX, XXXXX, XXXXX,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-       LTOG,  LHUI,  LSAI,  LVAI, XXXXX, XXXXX,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
-  //|------+------+------+------+------+------|                |------+------+------+------+------+------|
-      LSMOD,  LHUD,  LSAD,  LVAD, XXXXX, XXXXX,                  XXXXX, XXXXX, XXXXX, XXXXX, XXXXX, XXXXX,\
-  //|------+------+------+------+------+------+------|  |------+------+------+------+------+------+------|
-                                  LOWER, SPC,  RAISE,      LOWER, BSPC, RAISE \
-                              //`--------------------'  `--------------------'
-  )
+[_RAISE] = LAYOUT(\
+  _______, KC_NLCK, KC_PSLS, KC_P7,   KC_P8,   KC_P9,   KC_PMNS,      KC_VOLU, KC_HOME, KC_PSCR, KC_PGUP, KC_SLCK, KC_CAPS, _______, \
+           EQL_LCT, KC_PAST, KC_P4,   KC_P5,   KC_P6,   KC_PPLS,      KC_MUTE, KC_LEFT, KC_UP,   KC_RGHT, KC_INS,  APP_RCT, \
+           _______, KC_P0,   KC_P1,   KC_P2,   KC_P3,   KC_PCMM,      KC_VOLD, KC_END,  KC_DOWN, KC_PGDN, KC_PAUS, _______, \
+                                      _______, _______, _______,      _______, _______, _______\
+),
+
+[_ADJUST] = LAYOUT(\
+  DELBNDS,   RGBRST,  KC_ASUP, KC_ASTG, KC_ASDN, _______, _______,      _______, _______,  KC_ASDN, KC_ASTG, KC_ASUP, RGBRST,   DELBNDS, \
+           RGB_TOG, RGB_HUI, RGB_SAI, RGB_VAI, QWERTY,  PLOVER,       PLOVER,  QWERTY,  RGB_VAI, RGB_SAI, RGB_HUI, RGB_TOG, \
+           RGB_MOD, RGB_HUD, RGB_SAD, RGB_VAD, TG_ISO,  TG_THMB,      TG_THMB, TG_ISO,  RGB_VAD, RGB_SAD, RGB_HUD, RGB_MOD, \
+                                      _______, BATT_LV,   _______,      _______, BATT_LV,   _______\
+),
+[_THUMB_ALT] = LAYOUT(\
+  _______, _______, _______, _______, _______, _______, _______,      _______, _______, _______, _______, _______, _______, _______, \
+           _______, _______, _______, _______, _______, _______,      _______, _______, _______, _______, _______, _______, \
+           _______, _______, _______, _______, _______, _______,      _______, _______, _______, _______, _______, _______, \
+                                      DEL_RSE, BSP_LSH, ESC_LWR,      ENT_LWR, SPC_RSH, TAB_RSE \
+),
+
+[_ISO] = LAYOUT(\
+  _______, _______,         _______, _______, _______, _______, _______,      _______, _______, _______, _______, _______, _______, _______, \
+           LCTL_T(KC_NUBS), _______, _______, _______, _______, _______,      _______, _______, _______, _______, _______, _______, \
+           LALT_T(KC_NUHS), _______, _______, _______, _______, _______,      _______, _______, _______, _______, _______, KC_RALT, \
+                                              _______, _______, _______,      _______, _______, _______\
+),
 };
 
 void persistent_default_layer_set(uint16_t default_layer) {
@@ -166,10 +212,24 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
     set_keylog(keycode, record);
     //set_timelog();
+
+
+    eeprom_write_dword(EECONFIG_RGBLIGHT, 666);
   }
 
-
   switch (keycode) {
+    case RGB_TOG:
+        if (record->event.pressed) {
+            // only enable the power for now, never disable
+            if (!rgblight_config.enable) {
+                //nrfmicro_power_enable(!rgblight_config.enable);
+            }
+            #ifdef SSD1306OLED
+                //iota_gfx_init(!IS_LEFT_HAND); // enable the OLED screen
+            #endif
+        }
+    break;
+
     case QWERTY:
       if (record->event.pressed) {
         persistent_default_layer_set(1UL<<_QWERTY);
@@ -269,12 +329,18 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case RGBRST:
       #ifdef RGBLIGHT_ENABLE
         if (record->event.pressed) {
+          nrfmicro_power_enable(true);
           eeconfig_update_rgblight_default();
           rgblight_enable();
           RGB_current_mode = rgblight_config.mode;
           NRF_LOG_INFO("RGBRST, RGB_current_mode: %d\n", RGB_current_mode);
         }
       #endif
+
+      #ifdef SSD1306OLED
+      //iota_gfx_init(!IS_LEFT_HAND); // enable the OLED screen
+      #endif
+
       break;
   }
   if (record->event.pressed) {
@@ -344,6 +410,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       return false;
     }
   }
+
   return true;
 }
 ;
@@ -359,21 +426,60 @@ void matrix_update(struct CharacterMatrix *dest,
   }
 }
 
+//const char *read_host_led_state(void);
+//const char *read_mode_icon(bool swap);
+
+const char *read_rgb_info(void);
+
 void matrix_render_user(struct CharacterMatrix *matrix) {
-  if (is_master) {
-    matrix_write_ln(matrix, read_layer_state());
-    matrix_write_ln(matrix, read_keylog());
-    matrix_write_ln(matrix, read_keylogs());
+
+
+//  if (is_master) 
+{
+    //matrix_write_ln(matrix, read_layer_state());
+    //matrix_write_ln(matrix, read_keylog());
+
+    {
+    char str[64];
+
+#if (IS_LEFT_HAND)
+      sprintf (str, "Master: %s%s%s",
+        get_usb_enabled() && !get_ble_enabled() ? "USB mode":"",
+        get_ble_enabled() && ble_connected() ? "connected":"",
+        get_ble_enabled() && !ble_connected() ? "disconnected":""
+      );
+#else
+      sprintf(str, "Slave: %s", ble_connected() ? "connected" : "disconnected");
+#endif
+
+      matrix_write_ln(matrix, str);
+    }
+
+    matrix_write_ln(matrix, read_rgb_info());
+
+    {
+      char vc[16], str[32];
+      int vcc = get_vcc();
+      sprintf(vc, "%4dmV", vcc);
+      sprintf(str, "Bat: %s USB: %s", vcc==0 || vcc>4400 || nrfmicro_switch_pin()==0 ? "off   " : vc, has_usb()? "on":"off");
+      //sprintf(str, "Switch pin: %d", nrfmicro_switch_pin());
+      matrix_write_ln(matrix, str);
+    }
+
+    //matrix_write_ln(matrix, read_keylogs());
     //matrix_write_ln(matrix, read_mode_icon(keymap_config.swap_lalt_lgui));
     //matrix_write_ln(matrix, read_host_led_state());
     //matrix_write_ln(matrix, read_timelog());
-  } else {
-    matrix_write_ln(matrix, read_layer_state()); // somehow removes the dead pixel
-    matrix_write(matrix, read_logo());
   }
+// else {
+//    matrix_write_ln(matrix, read_layer_state()); // somehow removes the dead pixel
+//    matrix_write(matrix, read_logo());
+//  }
+
 }
 
 void iota_gfx_task_user(void) {
+  ScreenOffInterval = has_usb() ? 60*10*1000 : 60*5*1000; // ms
   struct CharacterMatrix matrix;
   matrix_clear(&matrix);
   matrix_render_user(&matrix);

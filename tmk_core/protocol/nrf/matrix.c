@@ -360,6 +360,7 @@ uint8_t matrix_scan_impl(matrix_row_t* _matrix){
     ble_nus_send_bytes((uint8_t*) ble_switch_send, (matrix_changed+1)*sizeof(ble_switch_state_t));
     send_flag = true;
   }
+
 #else
   UNUSED_VARIABLE(ble_switch_send);
 #endif
@@ -583,6 +584,7 @@ void ble_nus_on_disconnect() {
   rcv_keys_queue.cnt = 0;
 #endif
 }
+
 
 void ble_nus_packetrcv_handler(ble_switch_state_t* buf, uint8_t len) {
   static uint8_t prev_recv_timing;
