@@ -96,7 +96,7 @@ _______, KC_GUES,     KC_1,     KC_2,     KC_3,     KC_4,     KC_5,             
   ),
 
   [_RAISE] = LAYOUT( \
-_______, KC_GUES,  KC_EXLM,    KC_AT,  KC_HASH,   KC_DLR,  KC_PERC,                   KC_CIRC,  KC_AMPR,  KC_ASTR,  KC_LPRN,  KC_RPRN,  KC_TRNS, _______,\
+_______, KC_GUES,  KC_EXLM,    KC_AT,  KC_HASH,   KC_DLR,  KC_PERC,                   KC_CIRC,  KC_AMPR,  KC_ASTR,  KC_LPRN,  KC_RPRN,   KC_DEL, _______,\
          KC_TRNS,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,                   KC_MINS,  KC_PLUS,  KC_LCBR,  KC_RCBR,  KC_PIPE,  KC_TRNS,\
          KC_TRNS,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,                   KC_UNDS,   KC_EQL,  KC_LBRC,  KC_RBRC,  KC_BSLS,  KC_TRNS,\
                                                    KC_LALT, KC_SPC,  LOWER,    RAISE,  KC_ENT,  KC_RCTL \
