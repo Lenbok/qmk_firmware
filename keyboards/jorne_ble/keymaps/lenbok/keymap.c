@@ -119,6 +119,8 @@ void update_tri_layer_RGB(uint8_t layer1, uint8_t layer2, uint8_t layer3) {
   }
 }
 
+bool has_usb(void);
+
 // When add source files to SRC in rules.mk, you can use functions.
 const char *read_layer_state(void);
 const char *read_logo(void);
@@ -140,8 +142,11 @@ char hid_state_str[24];
 const char *read_hid_state(void) {
 #if defined IS_LEFT_HAND  &&  IS_LEFT_HAND == true
   snprintf(hid_state_str, sizeof(hid_state_str), "Hid: %s %s",
-           (get_usb_enabled()) ? "USB" : "   ",
-           (get_ble_enabled()) ? "BLE" : "   ");
+           get_usb_enabled() ? (has_usb() ? "USB" : "usb") : "   ",
+           get_ble_enabled() ? (ble_connected() ? "BLE" : "ble") : "   ");
+#else
+  snprintf(hid_state_str, sizeof(hid_state_str), "Slave: %s",
+           ble_connected() ? "BLE" : "ble");
 #endif
   return hid_state_str;
 }
@@ -306,13 +311,14 @@ void matrix_update(struct CharacterMatrix *dest,
 void matrix_render_user(struct CharacterMatrix *matrix) {
   if (is_master) {
     matrix_write_ln(matrix, read_layer_state());
-    matrix_write_ln(matrix, read_bat_state());
     matrix_write_ln(matrix, read_hid_state());
+    matrix_write_ln(matrix, read_bat_state());
     //matrix_write_ln(matrix, read_host_led_state());
     matrix_write(matrix, read_keylog());
     //matrix_write_ln(matrix, read_keylogs());
     //matrix_write_ln(matrix, read_mode_icon(keymap_config.swap_lalt_lgui));
   } else {
+    matrix_write_ln(matrix, read_hid_state());
     matrix_write_ln(matrix, read_bat_state());
   /*   matrix_write_ln(matrix, read_layer_state()); // somehow removes the dead pixel */
   /*   matrix_write(matrix, read_logo()); */
