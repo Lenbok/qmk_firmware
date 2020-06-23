@@ -1,10 +1,13 @@
 .dep
+*.a
+*.d
 *.o
 *.bin
 *.eep
 *.elf
 *.hex
 *.qmk
+*.uf2
 !util/bootloader.hex
 !quantum/tools/eeprom_reset.hex
 *.log
@@ -40,6 +43,7 @@ doxygen/
 
 # Eclipse/PyCharm/Other IDE Settings
 .cproject
+.ccls*
 .project
 .settings/
 .idea
