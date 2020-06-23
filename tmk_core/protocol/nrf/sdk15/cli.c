@@ -66,15 +66,20 @@ static MSCMD_USER_RESULT usrcmd_bonding_information(MSOPT *msopt,
     MSCMD_USER_OBJECT usrobj) {
   pm_peer_id_t peers[8];
   uint32_t peer_cnt;
+  pm_peer_id_t current_peer;
 
   memset(peers, PM_PEER_ID_INVALID, sizeof(peers));
   peer_cnt = (sizeof(peers) / sizeof(pm_peer_id_t));
+  current_peer = ble_connected_peer_id();
 
   // Load all peers from flash and whitelist them.
   peer_list_get(peers, &peer_cnt);
   for (int i = 0; i < peer_cnt; i++) {
     cli_puts("Device ");
     cdc_acm_putc(peers[i]+'0');
+    if (current_peer == peers[i]) {
+      cdc_acm_putc('*');
+    }
     cli_puts("\r\n");
   }
   return 0;

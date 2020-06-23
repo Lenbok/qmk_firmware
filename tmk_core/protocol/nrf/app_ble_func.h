@@ -45,6 +45,7 @@ void sleep_mode_enter(void);
 
 uint16_t get_vcc(void);
 bool ble_connected(void);
+uint8_t ble_connected_peer_id(void);
 
 #ifdef NRF_SEPARATE_KEYBOARD_SLAVE
 #define get_ble_enabled()

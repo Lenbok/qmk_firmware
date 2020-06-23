@@ -176,7 +176,7 @@ BLE_ADVERTISING_DEF( m_advertising); /**< Advertising module instance. */
 static bool m_in_boot_mode = false; /**< Current protocol mode. */
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID; /**< Handle of the current connection. */
 static bool m_caps_on = false; /**< Variable to indicate if Caps Lock is turned on. */
-static pm_peer_id_t m_peer_id; /**< Device reference handle to the current bonded central. */
+static pm_peer_id_t m_peer_id            = PM_PEER_ID_INVALID; /**< Device reference handle to the current bonded central. */
 static uint32_t m_whitelist_peer_cnt; /**< Number of peers currently in the whitelist. */
 static pm_peer_id_t m_whitelist_peers[BLE_GAP_WHITELIST_ADDR_MAX_COUNT]; /**< List of peers currently in the whitelist. */
 
@@ -247,6 +247,9 @@ bool ble_connected(void) {
   return m_conn_handle != BLE_CONN_HANDLE_INVALID;
 }
 
+pm_peer_id_t ble_connected_peer_id(void) {
+   return m_peer_id;
+}
 
 
 /**@brief Function for handling Peer Manager events.
@@ -917,8 +920,8 @@ static void on_ble_peripheral_evt(ble_evt_t const * p_ble_evt) {
   case BLE_GAP_EVT_DISCONNECTED:
     NRF_LOG_INFO("Disconnected");
     // Dequeue all keys without transmission.
-
     m_conn_handle = BLE_CONN_HANDLE_INVALID;
+    m_peer_id = PM_PEER_ID_INVALID;
 
     // Reset m_caps_on variable. Upon reconnect, the HID host will re-send the Output
     // report containing the Caps lock state.

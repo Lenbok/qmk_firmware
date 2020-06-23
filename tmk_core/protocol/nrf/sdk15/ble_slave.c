@@ -131,7 +131,7 @@
 #define UART_TX_BUF_SIZE                256                                         /**< UART TX buffer size. */
 #define UART_RX_BUF_SIZE                256                                         /**< UART RX buffer size. */
 
-static pm_peer_id_t m_peer_id; /**< Device reference handle to the current bonded central. */
+static pm_peer_id_t m_peer_id            = PM_PEER_ID_INVALID; /**< Device reference handle to the current bonded central. */
 
 static pm_peer_id_t m_whitelist_peers[BLE_GAP_WHITELIST_ADDR_MAX_COUNT]; /**< List of peers currently in the whitelist. */
 uint32_t m_whitelist_peer_cnt; /**< Number of peers currently in the whitelist. */
@@ -595,6 +595,7 @@ static void on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context) {
 //            err_code = bsp_indication_set(BSP_INDICATE_IDLE);
 //            APP_ERROR_CHECK(err_code);
     m_conn_handle = BLE_CONN_HANDLE_INVALID;
+    m_peer_id = PM_PEER_ID_INVALID;
 
     if (m_is_wl_changed) {
       // The whitelist has been modified, update it in the Peer Manager.
@@ -856,6 +857,10 @@ void timers_start(void) {
 
 bool ble_connected(void) {
   return m_conn_handle != BLE_CONN_HANDLE_INVALID;
+}
+
+pm_peer_id_t ble_connected_peer_id(void) {
+   return m_peer_id;
 }
 
 
