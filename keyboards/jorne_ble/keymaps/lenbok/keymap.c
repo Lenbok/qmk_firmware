@@ -25,6 +25,7 @@ enum custom_keycodes {
     USB_TOG,              /* Toggle USB HID sending               */
     USB_DIS,              /* Disable USB HID sending              */
     USB_EN,               /* Enable USB HID sending               */
+    HID_TOG,              /* Swap BLE vs USB HID sending          */
     DELBNDS,              /* Delete all bonding                   */
     ADV_ID1,              /* Start advertising to PeerID 1        */
     ADV_ID2,              /* Start advertising to PeerID 2        */
@@ -63,6 +64,7 @@ extern keymap_config_t keymap_config;
 #define KC_BEN   BLE_EN
 #define KC_BDIS  BLE_DIS
 #define KC_BTOG  BLE_TOG
+#define KC_HTOG  HID_TOG
 #define KC_A_ALL AD_WO_L
 #define KC_D_ALL DELBNDS
 #define KC_A_ID1 ADV_ID1
@@ -76,8 +78,6 @@ extern keymap_config_t keymap_config;
 #define KC_GUGR  LGUI_T(KC_GRV)
 #define KC_GUES  LGUI_T(KC_ESC)
 #define KC_CTLTB CTL_T(KC_TAB)
-#define KC_GUIEI GUI_T(KC_LANG2)
-#define KC_ALTKN ALT_T(KC_LANG1)
 
 
 const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
@@ -92,21 +92,21 @@ _______, KC_GUGR,     KC_Q,     KC_W,     KC_E,     KC_R,     KC_T,             
 _______, KC_GUES,     KC_1,     KC_2,     KC_3,     KC_4,     KC_5,                      KC_6,     KC_7,     KC_8,     KC_9,     KC_0,  KC_TRNS, _______,\
          KC_TRNS,    KC_F1,    KC_F2,    KC_F3,    KC_F4,    KC_F5,                   KC_LEFT,  KC_DOWN,    KC_UP,  KC_RGHT,  KC_TRNS,  KC_TRNS,\
          KC_TRNS,    KC_F6,    KC_F7,    KC_F8,    KC_F9,   KC_F10,                   KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,  KC_TRNS,\
-                                                   KC_LALT, KC_SPC,  LOWER,    RAISE,  KC_ENT,  KC_RCTL \
+                                                   KC_LALT,  RAISE,  LOWER,    RAISE,   LOWER,  KC_RCTL \
   ),
 
   [_RAISE] = LAYOUT( \
 _______, KC_GUES,  KC_EXLM,    KC_AT,  KC_HASH,   KC_DLR,  KC_PERC,                   KC_CIRC,  KC_AMPR,  KC_ASTR,  KC_LPRN,  KC_RPRN,   KC_DEL, _______,\
          KC_TRNS,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,                   KC_MINS,  KC_PLUS,  KC_LCBR,  KC_RCBR,  KC_PIPE,  KC_TRNS,\
          KC_TRNS,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,                   KC_UNDS,   KC_EQL,  KC_LBRC,  KC_RBRC,  KC_BSLS,  KC_TRNS,\
-                                                   KC_LALT, KC_SPC,  LOWER,    RAISE,  KC_ENT,  KC_RCTL \
+                                                   KC_LALT,  RAISE,  LOWER,    RAISE,   LOWER,  KC_RCTL \
   ),
 
   [_ADJUST] = LAYOUT( \
 _______, KC_RST,  KC_D_ID1, KC_D_ID2, KC_D_ID3, KC_D_ID4, KC_D_ALL,                   KC_MUTE,  KC_BTN1,  KC_BTN3,  KC_BTN2,  XXXXXXX,   KC_INS, _______,\
          KC_CAPS, KC_A_ID1, KC_A_ID2, KC_A_ID3, KC_A_ID4, KC_A_ALL,                   KC_MS_L,  KC_MS_D,  KC_MS_U,  KC_MS_R,  XXXXXXX,  XXXXXXX,\
-         KC_TRNS,  KC_UTOG,  KC_BTOG,  XXXXXXX,  XXXXXXX,  XXXXXXX,                   KC_MPRV,  KC_VOLD,  KC_VOLU,  KC_MNXT,  KC_MPLY,  KC_TRNS,\
-                                                   KC_LALT, KC_SPC,  LOWER,    RAISE,  KC_ENT,  KC_RCTL \
+         KC_TRNS,  KC_HTOG,  KC_BDIS,  XXXXXXX,  XXXXXXX,  XXXXXXX,                   KC_MPRV,  KC_VOLD,  KC_VOLU,  KC_MNXT,  KC_MPLY,  KC_TRNS,\
+                                                   KC_LALT,  RAISE,  LOWER,    RAISE,   LOWER,  KC_RCTL \
   )
 };
 
@@ -277,6 +277,13 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case USB_EN:
       set_ble_enabled(false);
       set_usb_enabled(true);
+      return false;
+    case HID_TOG:
+      set_ble_enabled(!get_ble_enabled());
+      set_usb_enabled(!get_ble_enabled());
+      return false;
+    case BLE_DIS:
+      ble_disconnect();
       return false;
     case BATT_LV:
       sprintf(str, "%4dmV", get_vcc());
