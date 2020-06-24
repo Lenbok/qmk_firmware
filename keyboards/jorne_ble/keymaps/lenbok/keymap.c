@@ -36,6 +36,11 @@ enum custom_keycodes {
     DEL_ID2,              /* Delete bonding of PeerID 2           */
     DEL_ID3,              /* Delete bonding of PeerID 3           */
     DEL_ID4,              /* Delete bonding of PeerID 4           */
+    B_ID1,                /* Advertise to or delete bonding (if shifted) for PeerID 1  */
+    B_ID2,                /* Advertise to or delete bonding (if shifted) for PeerID 2  */
+    B_ID3,                /* Advertise to or delete bonding (if shifted) for PeerID 3  */
+    B_ID4,                /* Advertise to or delete bonding (if shifted) for PeerID 4  */
+    B_ALL,                /* Advertise without whitelist, or (if shifted) delete all bondings */
     ENT_DFU,              /* Start bootloader                     */
     ENT_SLP,              /* Deep sleep mode                      */
     QWERTY,
@@ -75,6 +80,11 @@ extern keymap_config_t keymap_config;
 #define KC_D_ID2 DEL_ID2
 #define KC_D_ID3 DEL_ID3
 #define KC_D_ID4 DEL_ID4
+#define KC_B_ALL B_ALL
+#define KC_B_ID1 B_ID1
+#define KC_B_ID2 B_ID2
+#define KC_B_ID3 B_ID3
+#define KC_B_ID4 B_ID4
 #define KC_GUGR  LGUI_T(KC_GRV)
 #define KC_GUES  LGUI_T(KC_ESC)
 #define KC_CTLTB CTL_T(KC_TAB)
@@ -103,8 +113,8 @@ _______, KC_GUES,  KC_EXLM,    KC_AT,  KC_HASH,   KC_DLR,  KC_PERC,             
   ),
 
   [_ADJUST] = LAYOUT( \
-_______, KC_RST,  KC_D_ID1, KC_D_ID2, KC_D_ID3, KC_D_ID4, KC_D_ALL,                   KC_MUTE,  KC_BTN1,  KC_BTN3,  KC_BTN2,  XXXXXXX,   KC_INS, _______,\
-         KC_CAPS, KC_A_ID1, KC_A_ID2, KC_A_ID3, KC_A_ID4, KC_A_ALL,                   KC_MS_L,  KC_MS_D,  KC_MS_U,  KC_MS_R,  XXXXXXX,  XXXXXXX,\
+_______, KC_RST,   XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,                   KC_MUTE,  KC_BTN1,  KC_BTN3,  KC_BTN2,  XXXXXXX,   KC_INS, _______,\
+         KC_CAPS, KC_B_ID1, KC_B_ID2, KC_B_ID3, KC_B_ID4, KC_B_ALL,                   KC_MS_L,  KC_MS_D,  KC_MS_U,  KC_MS_R,  XXXXXXX,  XXXXXXX,\
          KC_TRNS,  KC_HTOG,  KC_BDIS,  XXXXXXX,  XXXXXXX,  XXXXXXX,                   KC_MPRV,  KC_VOLD,  KC_VOLU,  KC_MNXT,  KC_MPLY,  KC_TRNS,\
                                                    KC_LALT,  RAISE,  LOWER,    RAISE,   LOWER,  KC_RCTL \
   )
@@ -196,6 +206,8 @@ void matrix_scan_user(void) {
 
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   char str[16];
+  uint8_t id;
+  uint8_t current_mods;
 
   //NRF_LOG_INFO("process_record_user, keycode: %d, pressed: %s", keycode, record->event.pressed ? "true" : "false");
 #ifdef SSD1306OLED
@@ -263,6 +275,30 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       return false;
     case DEL_ID3:
       delete_bond_id(3);
+      return false;
+    case DEL_ID4:
+      delete_bond_id(4);
+      return false;
+    case B_ALL:
+      current_mods = get_mods();
+      if (current_mods & (MOD_BIT(KC_LSHIFT) | MOD_BIT(KC_RSHIFT))) {
+        delete_bonds();
+      } else {
+        restart_advertising_wo_whitelist();
+      }
+      return false;
+    case B_ID1:
+    case B_ID2:
+    case B_ID3:
+    case B_ID4:
+      current_mods = get_mods();
+      if (current_mods & (MOD_BIT(KC_LSHIFT) | MOD_BIT(KC_RSHIFT))) {
+        id = keycode - B_ID1 + 1;
+        delete_bond_id(id);
+      } else {
+        id = keycode - B_ID1 + 1;
+        restart_advertising_id(id);
+      }
       return false;
     case BLE_TOG:
       set_ble_enabled(!get_ble_enabled());
