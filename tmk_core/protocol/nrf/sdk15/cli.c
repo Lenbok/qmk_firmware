@@ -71,6 +71,14 @@ static MSCMD_USER_RESULT usrcmd_bonding_information(MSOPT *msopt,
   memset(peers, PM_PEER_ID_INVALID, sizeof(peers));
   peer_cnt = (sizeof(peers) / sizeof(pm_peer_id_t));
   current_peer = ble_connected_peer_id();
+  NRF_LOG_INFO("Current peer id %d.", current_peer);
+  if (current_peer == PM_PEER_ID_INVALID) {
+    cli_puts("No current peer\r\n\r\n");
+  } else {
+    cli_puts("Current peer ");
+    cdc_acm_putc(current_peer+'0');
+    cli_puts("\r\n\r\n");
+  }
 
   // Load all peers from flash and whitelist them.
   peer_list_get(peers, &peer_cnt);
