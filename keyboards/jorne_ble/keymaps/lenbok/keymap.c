@@ -9,6 +9,8 @@
 
 const uint8_t is_master = IS_LEFT_HAND;
 
+#define MODS_SHIFT_MASK  (MOD_BIT(KC_LSHIFT)|MOD_BIT(KC_RSHIFT))
+
 // Layers
 enum user_layers {
     _QWERTY = 0,
@@ -43,6 +45,7 @@ enum custom_keycodes {
     B_ALL,                /* Advertise without whitelist, or (if shifted) delete all bondings */
     ENT_DFU,              /* Start bootloader                     */
     ENT_SLP,              /* Deep sleep mode                      */
+    RST_DFU,              /* Reset or (if shifted) enter DFU */
     QWERTY,
     LOWER,
     RAISE,
@@ -113,7 +116,7 @@ _______, KC_GUES,  KC_EXLM,    KC_AT,  KC_HASH,   KC_DLR,  KC_PERC,             
   ),
 
   [_ADJUST] = LAYOUT( \
-_______, KC_RST,   XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,                   KC_MUTE,  KC_BTN1,  KC_BTN3,  KC_BTN2,  XXXXXXX,   KC_INS, _______,\
+_______, RST_DFU,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,  XXXXXXX,                   KC_MUTE,  KC_BTN1,  KC_BTN3,  KC_BTN2,  XXXXXXX,   KC_INS, _______,\
          KC_CAPS, KC_B_ID1, KC_B_ID2, KC_B_ID3, KC_B_ID4, KC_B_ALL,                   KC_MS_L,  KC_MS_D,  KC_MS_U,  KC_MS_R,  XXXXXXX,  XXXXXXX,\
          KC_TRNS,  KC_HTOG,  KC_BDIS,  XXXXXXX,  XXXXXXX,  XXXXXXX,                   KC_MPRV,  KC_VOLD,  KC_VOLU,  KC_MNXT,  KC_MPLY,  KC_TRNS,\
                                                    KC_LALT,  RAISE,  LOWER,    RAISE,   LOWER,  KC_RCTL \
@@ -281,7 +284,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       return false;
     case B_ALL:
       current_mods = get_mods();
-      if (current_mods & (MOD_BIT(KC_LSHIFT) | MOD_BIT(KC_RSHIFT))) {
+      if (current_mods & MODS_SHIFT_MASK) {
         delete_bonds();
       } else {
         restart_advertising_wo_whitelist();
@@ -292,7 +295,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case B_ID3:
     case B_ID4:
       current_mods = get_mods();
-      if (current_mods & (MOD_BIT(KC_LSHIFT) | MOD_BIT(KC_RSHIFT))) {
+      if (current_mods & MODS_SHIFT_MASK) {
         id = keycode - B_ID1 + 1;
         delete_bond_id(id);
       } else {
@@ -324,6 +327,14 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case BATT_LV:
       sprintf(str, "%4dmV", get_vcc());
       send_string(str);
+      return false;
+    case RST_DFU:
+      current_mods = get_mods();
+      if (current_mods & MODS_SHIFT_MASK) {
+        bootloader_jump();
+      } else {
+        reset_keyboard();
+      }
       return false;
     case ENT_DFU:
       bootloader_jump();
