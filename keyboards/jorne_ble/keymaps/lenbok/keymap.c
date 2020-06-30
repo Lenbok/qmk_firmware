@@ -1,5 +1,6 @@
 #include QMK_KEYBOARD_H
 #include "app_ble_func.h"
+#include "peer_manager.h"
 #include "matrix.h"
 
 #ifdef SSD1306OLED
@@ -153,13 +154,16 @@ const char *read_host_led_state(void) {
 
 char hid_state_str[24];
 const char *read_hid_state(void) {
+  pm_peer_id_t current_peer = ble_connected_peer_id();
 #if defined IS_LEFT_HAND  &&  IS_LEFT_HAND == true
-  snprintf(hid_state_str, sizeof(hid_state_str), "Hid: %s %s",
+  snprintf(hid_state_str, sizeof(hid_state_str), "Hid: %s %s %c",
            get_usb_enabled() ? (has_usb() ? "USB" : "usb") : "   ",
-           get_ble_enabled() ? (ble_connected() ? "BLE" : "ble") : "   ");
+           get_ble_enabled() ? (ble_connected() ? "BLE" : "ble") : "   ",
+           get_ble_enabled() && ble_connected() && (current_peer < BLE_GAP_WHITELIST_ADDR_MAX_COUNT) ? ((current_peer & 0xFF) + '0') : ' ');
 #else
-  snprintf(hid_state_str, sizeof(hid_state_str), "Slave: %s",
-           ble_connected() ? "BLE" : "ble");
+  snprintf(hid_state_str, sizeof(hid_state_str), "Slave: %s %c",
+           ble_connected() ? "BLE" : "ble",
+           ble_connected() && (current_peer < BLE_GAP_WHITELIST_ADDR_MAX_COUNT) ? ((current_peer & 0xFF) + '0') : '?');
 #endif
   return hid_state_str;
 }
