@@ -48,9 +48,9 @@ bool ble_connected(void);
 uint8_t ble_connected_peer_id(void);
 
 #ifdef NRF_SEPARATE_KEYBOARD_SLAVE
-#define get_ble_enabled()
+#define get_ble_enabled() false
 #define set_ble_enabled(x)
-#define get_usb_enabled()
+#define get_usb_enabled() false
 #define set_usb_enabled(x)
 #define select_ble()
 #define select_usb()

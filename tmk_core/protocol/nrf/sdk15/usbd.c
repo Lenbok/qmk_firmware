@@ -207,7 +207,6 @@ const uint8_t MouseReport[] = {
 }
 
 static bool auto_connection_check = false;
-static int auto_connection_check_cnt = 0;
 
 /**
  * @brief User event handler, HID mouse
@@ -745,9 +744,13 @@ int usbd_enable(void) {
 
 void usbd_process(void) {
   while (app_usbd_event_queue_process()) {
+
+#ifndef NRF_SEPARATE_KEYBOARD_SLAVE
+    static int auto_connection_check_cnt = 0;
     if (auto_connection_check) {
       if (auto_connection_check_cnt > 100) {
         auto_connection_check = false;
+        auto_connection_check_cnt = 0;
         NRF_LOG_DEBUG("auto_connection_check!");
         NRF_LOG_DEBUG("nrf_drv_usbd_is_started: %d", nrf_drv_usbd_is_started());
         NRF_LOG_DEBUG("nrf_drv_usbd_bus_suspend_check: %d", nrf_drv_usbd_bus_suspend_check());
@@ -773,8 +776,11 @@ void usbd_process(void) {
         auto_connection_check_cnt++;
       }
     }
+#endif
+
     continue;/* Nothing to do */
   }
+
   cli_exec();
 }
 
