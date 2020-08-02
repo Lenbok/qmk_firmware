@@ -41,7 +41,7 @@ uint8_t oled_buff[512];
 static inline bool _send_cmd1(uint8_t cmd) {
   bool res = false;
   uint8_t data[] = {0x00, cmd};
-  res = !i2c_transmit(SSD1306_ADDRESS, data, sizeof(data)/sizeof(data[0]));
+  res = !i2c_transmit(SSD1306_ADDRESS, data, sizeof(data)/sizeof(data[0]), I2C_TIMEOUT);
 
   return res;
 }
@@ -51,7 +51,7 @@ static inline bool _send_cmd1(uint8_t cmd) {
 static inline bool _send_cmd2(uint8_t cmd, uint8_t opr) {
   bool res = false;
   uint8_t data[] = {0x00, cmd, opr};
-  res = !i2c_transmit(SSD1306_ADDRESS, data, sizeof(data)/sizeof(data[0]));
+  res = !i2c_transmit(SSD1306_ADDRESS, data, sizeof(data)/sizeof(data[0]), I2C_TIMEOUT);
 
   return res;
 }
@@ -61,7 +61,7 @@ static inline bool _send_cmd2(uint8_t cmd, uint8_t opr) {
 static inline bool _send_cmd3(uint8_t cmd, uint8_t opr1, uint8_t opr2) {
   bool res = false;
   uint8_t data[] = {0x00, cmd, opr1, opr2};
-  res = !i2c_transmit(SSD1306_ADDRESS, data, sizeof(data)/sizeof(data[0]));
+  res = !i2c_transmit(SSD1306_ADDRESS, data, sizeof(data)/sizeof(data[0]), I2C_TIMEOUT);
 
   return res;
 }
@@ -80,7 +80,7 @@ static void clear_display(void) {
 
   memset(oled_buff, 0x00, sizeof(oled_buff));
   oled_buff[0] = 0x40;
-  i2c_transmit(SSD1306_ADDRESS, oled_buff, 1+MatrixRows*DisplayWidth);
+  i2c_transmit(SSD1306_ADDRESS, oled_buff, 1+MatrixRows*DisplayWidth, I2C_TIMEOUT);
 
   display.dirty = false;
 
@@ -276,7 +276,7 @@ void matrix_render(struct CharacterMatrix *matrix) {
     }
   }
 
-  i2c_transmit(SSD1306_ADDRESS, oled_buff, 1 + MatrixRows*MatrixCols*FontWidth);
+  i2c_transmit(SSD1306_ADDRESS, oled_buff, 1 + MatrixRows*MatrixCols*FontWidth, I2C_TIMEOUT);
 
   matrix->dirty = false;
 
