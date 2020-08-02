@@ -1,7 +1,7 @@
 .dep
-*.a
 *.d
 *.o
+/*.a
 *.bin
 *.eep
 *.elf

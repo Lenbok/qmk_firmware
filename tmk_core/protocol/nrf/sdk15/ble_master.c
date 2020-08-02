@@ -77,6 +77,7 @@
 #include "nrf_log_default_backends.h"
 
 #include "ble_central.h"
+#include "ble_dongle.h"
 #include "adc.h"
 #include "ble_common.h"
 
@@ -89,9 +90,7 @@
 #define APP_BLE_CONN_CFG_TAG                1                                          /**< A tag identifying the SoftDevice BLE configuration. */
 
 #define BATTERY_LEVEL_MEAS_INTERVAL         APP_TIMER_TICKS(2000)                      /**< Battery level measurement interval (ticks). */
-#define MIN_BATTERY_LEVEL                   81                                         /**< Minimum simulated battery level. */
-#define MAX_BATTERY_LEVEL                   100                                        /**< Maximum simulated battery level. */
-#define BATTERY_LEVEL_INCREMENT             1                                          /**< Increment between each simulated battery level measurement. */
+#define MAX_VBAT_HISTORY_SIZE               30
 
 #define PNP_ID_VENDOR_ID_SOURCE             0x02                                       /**< Vendor ID Source. */
 #define PNP_ID_VENDOR_ID                    0x1915                                     /**< Vendor ID. */
@@ -137,8 +136,7 @@
 #define OUTPUT_REPORT_MAX_LEN               1                                          /**< Maximum length of Output Report. */
 #define INPUT_REPORT_KEYS_INDEX             0                                          /**< Index of Input Report. */
 #define OUTPUT_REPORT_BIT_MASK_CAPS_LOCK    0x02                                       /**< CAPS LOCK bit in Output Report (based on 'LED Page (0x08)' of the Universal Serial Bus HID Usage Tables). */
-#define INPUT_REP_REF_ID                    0                                          /**< Id of reference to Keyboard Input Report. */
-#define OUTPUT_REP_REF_ID                   0                                          /**< Id of reference to Keyboard Output Report. */
+#define OUTPUT_REP_REF_ID                   1                                          /**< Id of reference to Keyboard Output Report. */
 
 #define MAX_BUFFER_ENTRIES                  5                                          /**< Number of elements that can be enqueued */
 
@@ -175,10 +173,15 @@ BLE_ADVERTISING_DEF( m_advertising); /**< Advertising module instance. */
 
 static bool m_in_boot_mode = false; /**< Current protocol mode. */
 static uint16_t m_conn_handle = BLE_CONN_HANDLE_INVALID; /**< Handle of the current connection. */
-static bool m_caps_on = false; /**< Variable to indicate if Caps Lock is turned on. */
 static pm_peer_id_t m_peer_id            = PM_PEER_ID_INVALID; /**< Device reference handle to the current bonded central. */
 static uint32_t m_whitelist_peer_cnt; /**< Number of peers currently in the whitelist. */
 static pm_peer_id_t m_whitelist_peers[BLE_GAP_WHITELIST_ADDR_MAX_COUNT]; /**< List of peers currently in the whitelist. */
+
+#ifdef USE_BATTERY_PIN
+static int16_t m_vbat_history[MAX_VBAT_HISTORY_SIZE]; /**< List of battery voltage measuring for calculate average. */
+static uint8_t m_vbat_history_length = 0;
+static uint8_t m_vbat_history_index = 0;
+#endif
 
 static ble_uuid_t m_adv_uuids[] = { { BLE_UUID_HUMAN_INTERFACE_DEVICE_SERVICE,
     BLE_UUID_TYPE_BLE } };
@@ -400,13 +403,39 @@ static void battery_level_update(void) {
   uint8_t battery_level;
 
   adc_start();
-  //battery_level = get_vcc() / 30;
-
-  // NB! joric. get_vcc is in mV, so we need to map 2.9V..4.2V into 0..100
-  int high = 4200, low = 2900;
-  int vcc = get_vcc();
-  battery_level = (vcc - low) * 100 / (high - low);
-  if (battery_level > 100) battery_level = 100;
+#ifdef USE_BATTERY_PIN
+  m_vbat_history[m_vbat_history_index] = get_vcc();
+  m_vbat_history_index++;
+  m_vbat_history_index %= MAX_VBAT_HISTORY_SIZE;
+  if (m_vbat_history_length < MAX_VBAT_HISTORY_SIZE){
+    m_vbat_history_length++;
+  }
+  uint32_t sum = 0;
+  for (uint8_t i = 0; i < m_vbat_history_length; i++) {
+    sum += m_vbat_history[i];
+  }
+# ifndef BATTERY_VMAX
+#   define V_MAX 4200
+# else
+#   define V_MAX BATTERY_VMAX
+# endif
+# ifndef BATTERY_VMIN
+#   define V_MIN 2900
+# else
+#   define V_MIN BATTERY_VMIN
+# endif
+  int16_t vbat = sum / m_vbat_history_length;
+  int16_t diff = vbat - V_MIN;
+  if (diff < 0) {
+    diff = 0;
+  } else if (diff > (V_MAX-V_MIN)) {
+    diff = V_MAX-V_MIN;
+  }
+  battery_level = diff * 100 / (V_MAX-V_MIN);
+  NRF_LOG_DEBUG("         Avg: %04d mV, %d%%", vbat, battery_level);
+#else
+  battery_level = get_vcc() / 30;
+#endif
 
   err_code = ble_bas_battery_level_update(&m_bas, battery_level,
       BLE_CONN_HANDLE_ALL);
@@ -439,6 +468,10 @@ void timers_init(void (*main_task)(void*)) {
 
   err_code = app_timer_init();
   APP_ERROR_CHECK(err_code);
+
+#ifdef USE_BATTERY_PIN
+  memset(&m_vbat_history, 0, sizeof(m_vbat_history));
+#endif
 
   // Create battery timer.
   err_code = app_timer_create(&m_battery_timer_id, APP_TIMER_MODE_REPEATED,
@@ -584,7 +617,7 @@ void composite_service_init(void) {
   ble_hids_outp_rep_init_t * p_output_report;
   uint8_t hid_info_flags;
 
-  memset((void *) input_report_array, 0, sizeof(ble_hids_inp_rep_init_t));
+  memset((void *) input_report_array, 0, sizeof(ble_hids_inp_rep_init_t) * COMPOSITE_REPORT_COUNT);
   memset((void *) output_report_array, 0, sizeof(ble_hids_outp_rep_init_t));
 
   // Initialize HID Service
@@ -710,7 +743,7 @@ void composite_service_init(void) {
       &composite_service_init_obj.security_mode_boot_mouse_inp_rep.cccd_write_perm);
   BLE_GAP_CONN_SEC_MODE_SET_ENC_NO_MITM(
       &composite_service_init_obj.security_mode_boot_mouse_inp_rep.read_perm);
-  BLE_GAP_CONN_SEC_MODE_SET_NO_ACCESS(
+  BLE_GAP_CONN_SEC_MODE_SET_ENC_NO_MITM(
       &composite_service_init_obj.security_mode_boot_mouse_inp_rep.write_perm);
 
   BLE_GAP_CONN_SEC_MODE_SET_ENC_NO_MITM(
@@ -775,6 +808,36 @@ void timers_start(void) {
   APP_ERROR_CHECK(err_code);
 }
 
+/**@brief Function for handling the HID Report Characteristic Write event.
+ *
+ * @param[in]   p_evt   HID service event.
+ */
+static void on_hid_rep_char_write(ble_hids_evt_t * p_evt)
+{
+  if (p_evt->params.char_write.char_id.rep_type == BLE_HIDS_REP_TYPE_OUTPUT)
+  {
+    ret_code_t err_code;
+    uint8_t  report_val;
+    uint8_t  report_index = p_evt->params.char_write.char_id.rep_index;
+
+    if (report_index == OUTPUT_REPORT_INDEX)
+    {
+      // This code assumes that the output report is one byte long. Hence the following
+      // static assert is made.
+      STATIC_ASSERT(OUTPUT_REPORT_MAX_LEN == 1);
+
+      err_code = ble_hids_outp_rep_get(&m_hids_composite,
+                                       report_index,
+                                       OUTPUT_REPORT_MAX_LEN,
+                                       0,
+                                       m_conn_handle,
+                                       &report_val);
+      APP_ERROR_CHECK(err_code);
+      keyboard_led_stats = report_val;
+    }
+  }
+}
+
 /**@brief Function for handling HID events.
  *
  * @details This function will be called for all HID events which are passed to the application.
@@ -793,6 +856,7 @@ static void on_hids_evt(ble_hids_t * p_hids, ble_hids_evt_t * p_evt) {
     break;
 
   case BLE_HIDS_EVT_REP_CHAR_WRITE:
+    on_hid_rep_char_write(p_evt);
     break;
 
   case BLE_HIDS_EVT_NOTIF_ENABLED:
@@ -923,10 +987,8 @@ static void on_ble_peripheral_evt(ble_evt_t const * p_ble_evt) {
     m_conn_handle = BLE_CONN_HANDLE_INVALID;
     m_peer_id = PM_PEER_ID_INVALID;
 
-    // Reset m_caps_on variable. Upon reconnect, the HID host will re-send the Output
-    // report containing the Caps lock state.
-    m_caps_on = false;
-    // disabling alert 3. signal - used for capslock ON
+    // Reset keyboard_led_stats variable. Upon reconnect, the HID host will re-send the Output
+    keyboard_led_stats = 0;
 
     break; // BLE_GAP_EVT_DISCONNECTED
 
@@ -980,7 +1042,7 @@ static void ble_evt_dispatch(ble_evt_t const * p_ble_evt, void * p_context) {
     on_ble_peripheral_evt(p_ble_evt);
   } else if ((role == BLE_GAP_ROLE_CENTRAL)
       || (p_ble_evt->header.evt_id == BLE_GAP_EVT_ADV_REPORT)) {
-#ifdef NRF_SEPARATE_KEYBOARD_MASTER
+#if defined(NRF_SEPARATE_KEYBOARD_MASTER) || defined(NRF_SEPARATE_KEYBOARD_DONGLE)
     on_ble_central_evt(p_ble_evt, conn_handle);
 #endif
   }
@@ -1101,11 +1163,11 @@ void ble_send_keyboard(report_keyboard_t *report) {
         COMPOSITE_REPORT_INDEX_KEYBOARD, INPUT_REPORT_KEYS_MAX_LEN, report->raw,
         m_conn_handle);
 #endif
-    NRF_LOG_DEBUG("key normal report send\r\n");
+    NRF_LOG_DEBUG("key normal report send:%d", err_code);
   } else {
     err_code = ble_hids_boot_kb_inp_rep_send(&m_hids_composite,
     INPUT_REPORT_KEYS_MAX_LEN, report->raw, m_conn_handle);
-    NRF_LOG_DEBUG("key boot report send\r\n");
+    NRF_LOG_DEBUG("key boot report send:%d", err_code);
   }
 //    APP_ERROR_CHECK(err_code);
   if (err_code != NRF_SUCCESS) {
@@ -1129,9 +1191,9 @@ void ble_send_abs_mouse(int8_t x, int8_t y) {
   }
   uint32_t err_code = ble_hids_inp_rep_send(&m_hids_composite,
       COMPOSITE_REPORT_INDEX_ABS_MOUSE, 2, (uint8_t*) data, m_conn_handle);
-  NRF_LOG_DEBUG("abs mouse report send\r\n");
+  NRF_LOG_DEBUG("abs mouse report send:%d", err_code);
   if (err_code != NRF_SUCCESS) {
-    NRF_LOG_DEBUG("abs mouse send error\r\n");
+    NRF_LOG_DEBUG("abs mouse send error");
   }
 }
 
@@ -1253,7 +1315,7 @@ void restart_advertising_wo_whitelist() {
 
   sd_ble_gap_adv_stop(m_advertising.adv_handle);
 
-#ifdef NRF_SEPARATE_KEYBOARD_MASTER
+#if defined(NRF_SEPARATE_KEYBOARD_MASTER)
   scan_start();
 #endif
 
@@ -1357,6 +1419,14 @@ bool get_ble_enabled () { return enable_ble_send; }
 void set_ble_enabled (bool enabled) { enable_ble_send = enabled; }
 bool get_usb_enabled () { return enable_usb_send; }
 void set_usb_enabled (bool enabled) { enable_usb_send = enabled; }
+void select_ble() {
+  enable_ble_send = true;
+  enable_usb_send = false;
+}
+void select_usb() {
+  enable_ble_send = false;
+  enable_usb_send = true;
+}
 /**
  * @}
  */

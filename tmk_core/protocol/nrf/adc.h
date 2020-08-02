@@ -1,3 +1,4 @@
+#include <stdint.h>
 
 /// Initializing ADC(for nrf51) or SADC(for nrf52)
 void adc_init(void);

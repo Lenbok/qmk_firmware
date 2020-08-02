@@ -52,11 +52,15 @@ uint8_t ble_connected_peer_id(void);
 #define set_ble_enabled(x)
 #define get_usb_enabled()
 #define set_usb_enabled(x)
+#define select_ble()
+#define select_usb()
 #else
 bool get_ble_enabled(void);
 void set_ble_enabled(bool enabled);
 bool get_usb_enabled(void);
 void set_usb_enabled(bool enabled);
+void select_ble();
+void select_usb();
 #endif
 
 #endif /* TMK_CORE_PROTOCOL_NRF_APP_BLE_FUNC_H_ */
