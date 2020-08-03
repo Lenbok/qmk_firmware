@@ -52,9 +52,18 @@ void matrix_init_kb(void) {
       iota_gfx_init(!IS_LEFT_HAND);   // turns on the display
   #endif
 
-  matrix_init_user();
+  select_row(3);
 
-  nrf_gpio_pin_clear(LED_PIN);
+  wait_us(50);
+  matrix_row_t row = read_cols();
+  unselect_rows();
+  if (row == 0b111000) {
+    delete_bonds();
+  } else if (row == 0b10) {
+    bootloader_flag = true;
+  }
+
+  matrix_init_user();
 }
 
 void matrix_scan_kb(void) {

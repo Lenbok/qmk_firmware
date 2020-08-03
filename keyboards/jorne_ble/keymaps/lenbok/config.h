@@ -25,4 +25,7 @@
 #define TAPPING_FORCE_HOLD
 #define DISABLE_SPACE_CADET_ROLLOVER
 
-//#define NRFMICRO_AIN2_BAT // nRFMicro 1.0 // joric
+// I'm currently in the dark ages on NRFMICRO 0.03
+//#define USE_NRFMICRO_1_1
+//#define USE_NRFMICRO_1_2
+//#define USE_NRFMICRO_1_3

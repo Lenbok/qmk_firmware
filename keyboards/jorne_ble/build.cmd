@@ -1,10 +1,18 @@
 @echo off
 
-cd %~dp0
-
 set keyboard=jorne_ble
 set keymap=default
 set role=master
+
+::echo "Building with WSL1"
+::wsl --set-default Ubuntu
+::set SDK_ROOT=/c/mnt/SDK/nRF5_SDK_15.0.0_a53641a
+::set PROJ_ROOT=../
+
+echo "Building with WSL2"
+wsl --set-default Ubuntu-20.04
+set SDK_ROOT=~/nRF5_SDK_15.0.0_a53641a
+set PROJ_ROOT=~/qmk
 
 if "%1"=="slave" set role=slave
 
@@ -12,7 +20,7 @@ echo building %role%
 
 set file=%keyboard%_%role%_%keymap%.hex
 
-bash -c "cd ../../ && export NRFSDK15_ROOT=/mnt/c/SDK/nRF5_SDK_15.0.0_a53641a && make %keyboard%/%role%:%keymap%" || exit
+bash -c "cd %PROJ_ROOT% && export NRFSDK15_ROOT=%SDK_ROOT% && make %keyboard%/%role%:%keymap%" || exit
 
 cd ..\..\.build
 

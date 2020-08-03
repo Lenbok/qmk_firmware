@@ -18,7 +18,6 @@ extern rgblight_config_t rgblight_config;
 const uint8_t is_master = IS_LEFT_HAND;
 
 void nrfmicro_power_enable(bool enable);
-extern uint8_t nrfmicro_switch_pin(void);
 
 bool has_usb(void);
 
@@ -31,9 +30,7 @@ enum layer_number {
   _QWERTY = 0,
   _LOWER,
   _RAISE,
-  _ADJUST,
-  _ISO,
-  _THUMB_ALT,
+  _ADJUST
 };
 
 enum custom_keycodes {
@@ -60,12 +57,7 @@ enum custom_keycodes {
     LOWER,
     RAISE,
     ADJUST,
-    BACKLIT,
-    EISU,
-    KANA,
-    RGBRST,
-    PLOVER,
-    EXT_PLV
+    RGBRST
 };
 
 
@@ -95,9 +87,6 @@ extern keymap_config_t keymap_config;
 #define LOWER MO(_LOWER)
 #define RAISE MO(_RAISE)
 
-#define TG_ISO  TG(_ISO)
-#define TG_THMB TG(_THUMB_ALT)
-
 #define RBR_RGU MT(MOD_RGUI, KC_RBRC)
 #define F12_RGU MT(MOD_RGUI, KC_F12)
 #define PLS_LCT MT(MOD_LCTL, KC_PPLS)
@@ -120,8 +109,6 @@ extern keymap_config_t keymap_config;
 #define TAB_RSE LT(_RAISE, KC_TAB)
 #define ENT_LWR LT(_LOWER, KC_ENT)
 #define ESC_LWR LT(_LOWER, KC_ESC)
-
-
 
 #define SH_TG KC_TRNS
 
@@ -154,24 +141,11 @@ const uint16_t PROGMEM keymaps[][MATRIX_ROWS][MATRIX_COLS] = {
 ),
 
 [_ADJUST] = LAYOUT(\
-  DELBNDS,   RGBRST,  KC_ASUP, KC_ASTG, KC_ASDN, _______, _______,      _______, _______,  KC_ASDN, KC_ASTG, KC_ASUP, RGBRST,   DELBNDS, \
-           RGB_TOG, RGB_HUI, RGB_SAI, RGB_VAI, QWERTY,  PLOVER,       PLOVER,  QWERTY,  RGB_VAI, RGB_SAI, RGB_HUI, RGB_TOG, \
-           RGB_MOD, RGB_HUD, RGB_SAD, RGB_VAD, TG_ISO,  TG_THMB,      TG_THMB, TG_ISO,  RGB_VAD, RGB_SAD, RGB_HUD, RGB_MOD, \
-                                      _______, BATT_LV,   _______,      _______, BATT_LV,   _______\
-),
-[_THUMB_ALT] = LAYOUT(\
-  _______, _______, _______, _______, _______, _______, _______,      _______, _______, _______, _______, _______, _______, _______, \
-           _______, _______, _______, _______, _______, _______,      _______, _______, _______, _______, _______, _______, \
-           _______, _______, _______, _______, _______, _______,      _______, _______, _______, _______, _______, _______, \
-                                      DEL_RSE, BSP_LSH, ESC_LWR,      ENT_LWR, SPC_RSH, TAB_RSE \
-),
-
-[_ISO] = LAYOUT(\
-  _______, _______,         _______, _______, _______, _______, _______,      _______, _______, _______, _______, _______, _______, _______, \
-           LCTL_T(KC_NUBS), _______, _______, _______, _______, _______,      _______, _______, _______, _______, _______, _______, \
-           LALT_T(KC_NUHS), _______, _______, _______, _______, _______,      _______, _______, _______, _______, _______, KC_RALT, \
-                                              _______, _______, _______,      _______, _______, _______\
-),
+  DELBNDS, RGBRST,  KC_ASUP, KC_ASTG, KC_ASDN, _______, _______,      _______, _______, KC_ASDN, KC_ASTG, KC_ASUP, RGBRST, DELBNDS, \
+           RGB_TOG, RGB_HUI, RGB_SAI, RGB_VAI, _______, _______,      _______, _______,  RGB_VAI, RGB_SAI, RGB_HUI, RGB_TOG, \
+           RGB_MOD, RGB_HUD, RGB_SAD, RGB_VAD, _______, _______,      _______, _______,  RGB_VAD, RGB_SAD, RGB_HUD, RGB_MOD, \
+                                      _______, BATT_LV, _______,      _______, BATT_LV, _______\
+)
 };
 
 void persistent_default_layer_set(uint16_t default_layer) {
@@ -199,7 +173,6 @@ void set_keylog(uint16_t keycode, keyrecord_t *record);
 const char *read_keylog(void);
 const char *read_keylogs(void);
 
-
 bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   char str[16];
 
@@ -212,9 +185,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
   if (record->event.pressed) {
     set_keylog(keycode, record);
     //set_timelog();
-
-
-    eeprom_write_dword(EECONFIG_RGBLIGHT, 666);
   }
 
   switch (keycode) {
@@ -302,30 +272,6 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       #endif
       return false;
       break;
-    case EISU:
-      if (record->event.pressed) {
-        if(keymap_config.swap_lalt_lgui==false){
-          register_code(KC_LANG2);
-        }else{
-          SEND_STRING(SS_LALT("`"));
-        }
-      } else {
-        unregister_code(KC_LANG2);
-      }
-      return false;
-      break;
-    case KANA:
-      if (record->event.pressed) {
-        if(keymap_config.swap_lalt_lgui==false){
-          register_code(KC_LANG1);
-        }else{
-          SEND_STRING(SS_LALT("`"));
-        }
-      } else {
-        unregister_code(KC_LANG1);
-      }
-      return false;
-      break;
     case RGBRST:
       #ifdef RGBLIGHT_ENABLE
         if (record->event.pressed) {
@@ -340,13 +286,17 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
       #ifdef SSD1306OLED
       //iota_gfx_init(!IS_LEFT_HAND); // enable the OLED screen
       #endif
-
       break;
-  }
+    }
+
   if (record->event.pressed) {
-    switch (keycode) {
+    switch(keycode) {
     case DELBNDS:
-      delete_bonds();
+      //delete_bonds();
+      //super weird issue - RGBTOG overlaps DELBNDS
+      //not sure why, matrix issue probably
+      //use 3 thumb keys + reset button for now
+      NRF_LOG_INFO("DELBNDS overlaps RGBTOG, temporarily disabled");
       return false;
     case AD_WO_L:
       restart_advertising_wo_whitelist();
@@ -401,7 +351,7 @@ bool process_record_user(uint16_t keycode, keyrecord_t *record) {
     case ENT_DFU:
       bootloader_jump();
       return false;
-    }
+    } 
   }
   else if (!record->event.pressed) {
     switch (keycode) {
@@ -461,8 +411,7 @@ void matrix_render_user(struct CharacterMatrix *matrix) {
       char vc[16], str[32];
       int vcc = get_vcc();
       sprintf(vc, "%4dmV", vcc);
-      sprintf(str, "Bat: %s USB: %s", vcc==0 || vcc>4400 || nrfmicro_switch_pin()==0 ? "off   " : vc, has_usb()? "on":"off");
-      //sprintf(str, "Switch pin: %d", nrfmicro_switch_pin());
+      sprintf(str, "Bat: %s USB: %s", vcc<500 || vcc>4400 ? "off   " : vc, has_usb()? "on":"off");
       matrix_write_ln(matrix, str);
     }
 

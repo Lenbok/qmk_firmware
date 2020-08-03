@@ -51,14 +51,6 @@ void matrix_init_kb() {
   matrix_row_t row = read_cols();
   unselect_rows();
   if (row == 0b111000) {
-    for (int i = 0; i < 5; i++) {
-      nrf_gpio_pin_clear(LED_PIN);
-      nrf_delay_ms(250);
-
-      nrf_gpio_pin_set(LED_PIN);
-      nrf_delay_ms(50);
-    }
-    nrf_gpio_pin_set(LED_PIN);
     delete_bonds();
   } else if (row == 0b10) {
     bootloader_flag = true;
@@ -70,8 +62,6 @@ void matrix_init_kb() {
   #endif
 
   matrix_init_user();
-
-  nrf_gpio_pin_clear(LED_PIN);
 }
 
 void matrix_scan_kb(void) {
@@ -79,6 +69,6 @@ void matrix_scan_kb(void) {
     iota_gfx_task();  // this is what updates the display continuously
   #endif
 
-  matrix_scan_user();
   nrfmicro_update();
+  matrix_scan_user();
 }

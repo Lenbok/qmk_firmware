@@ -7,6 +7,43 @@ extern "C" {
 
 #define GPIO(port, pin) ((port << 6) | pin)
 
+// Put in one of these in keymap config.h
+//#define USE_NRFMICRO_1_1
+//#define USE_NRFMICRO_1_2
+//#define USE_NRFMICRO_1_3
+
+#ifdef USE_NRFMICRO_1_1
+#define FLIPPED_NRFMICRO
+#define USE_SWITCH_PIN
+#define USE_GND_POWER_PIN
+#define USE_BATTERY_PIN
+#define BATTERY_R1 10
+#define BATTERY_R2 13
+#endif
+
+#ifdef USE_NRFMICRO_1_2
+#define USE_INTERNAL_LDO
+#define USE_MCP73811_CTRL
+//#define USE_MCP73831_CTRL
+#define USE_VCC_POWER_PIN
+#define USE_BATTERY_PIN
+#define BATTERY_R1 820
+#define BATTERY_R2 2000
+#endif
+
+#ifdef USE_NRFMICRO_1_3
+#define USE_TP4054_CTRL
+#define USE_VCC_POWER_PIN
+#define USE_BATTERY_PIN
+#define BATTERY_R1 820
+#define BATTERY_R2 2000
+#endif
+
+// there are currently 3 types of charger control, some of them use 13K internal pull-down:
+// USE_MCP73811_CTRL - STAT_PIN is 0/1: disable/enable, PROG_PIN is 0/1: 85/450 mA
+// USE_MCP73831_CTRL - no resistor (!), PROG_PIN is no-pull/pull-down: disable/77 mA
+// USE_TP4054_CTRL - 10K resistor, PROG_PIN is no-pull/gnd/pull-down: disable/100 mA/43 mA
+
 #define PIN1 GPIO(0,6)
 #define PIN2 GPIO(0,8)
 
@@ -53,11 +90,14 @@ extern "C" {
 #endif
 
 #define LED_PIN GPIO(1,10)
-#define RESET_PIN GPIO(1,18)
-#define SWO_PIN GPIO(1,0)
-#define DFU_PIN GPIO(1,2)
 #define SWITCH_PIN GPIO(0,26)
 #define POWER_PIN GPIO(1,9)
+
+#define STAT_PIN GPIO(0,7)
+#define PROG_PIN GPIO(0,5)
+
+// pin 0.04, must be analog
+#define BATTERY_PIN NRF_SAADC_INPUT_AIN2
 
 // i2c pins
 #define CONFIG_PIN_SDA PIN5
